@@ -2,140 +2,264 @@
 
 ---
 
-<!-- Circuit Trace — top-right -->
-<svg
-  class="hero-deco hero-deco--circuit"
-  viewBox="0 0 600 500"
-  fill="none"
-  stroke="currentColor"
-  aria-hidden="true"
->
-  <!-- Main traces -->
-  <path class="hero-deco__path" d="M50 10 L50 80 L200 80 L200 150 L350 150" stroke-width="1.5" />
-  <path class="hero-deco__path" d="M120 30 L120 120 L280 120 L280 200 L420 200" stroke-width="1.5" />
-  <path class="hero-deco__path" d="M10 180 L90 180 L90 260 L240 260 L240 320 L380 320" stroke-width="1.5" />
-  <path class="hero-deco__path" d="M180 50 L180 100 L310 100 L310 180 L450 180 L450 280" stroke-width="1.5" />
-  <path class="hero-deco__path" d="M60 300 L150 300 L150 380 L300 380 L300 430 L500 430" stroke-width="1.5" />
-  <!-- Branch traces -->
-  <path class="hero-deco__path" d="M200 150 L200 220 L320 220" stroke-width="1" />
-  <path class="hero-deco__path" d="M280 200 L280 270 L360 270" stroke-width="1" />
-  <path class="hero-deco__path" d="M450 280 L520 280 L520 350" stroke-width="1" />
-  <!-- Terminal nodes -->
-  <circle class="hero-deco__node" cx="350" cy="150" r="4" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="420" cy="200" r="4" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="380" cy="320" r="4" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="450" cy="280" r="3" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="500" cy="430" r="4" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="320" cy="220" r="3" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="360" cy="270" r="3" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="520" cy="350" r="3" fill="currentColor" stroke="none" />
-</svg>
+<div class="hero-cipher-container" aria-hidden="true">
+  <canvas id="cipher-canvas"></canvas>
+</div>
 
-<!-- Hex Grid Fragment — left -->
-<svg
-  class="hero-deco hero-deco--hex"
-  viewBox="0 0 500 450"
-  fill="none"
-  stroke="currentColor"
-  aria-hidden="true"
->
-  <!-- Row 1 -->
-  <path class="hero-deco__path" d="M80 30 L110 15 L140 30 L140 60 L110 75 L80 60 Z" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M140 30 L170 15 L200 30 L200 60 L170 75 L140 60" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M200 30 L230 15 L260 30 L260 60" stroke-width="1.2" />
-  <!-- Row 2 -->
-  <path class="hero-deco__path" d="M110 75 L140 90 L140 120 L110 135 L80 120 L80 90 Z" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M170 75 L200 90 L200 120 L170 135 L140 120 L140 90" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M230 75 L260 90 L260 120 L230 135 L200 120 L200 90" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M290 75 L320 90 L320 120 L290 135" stroke-width="1.2" />
-  <!-- Row 3 -->
-  <path class="hero-deco__path" d="M80 150 L110 135 L140 150 L140 180 L110 195 L80 180 Z" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M140 150 L170 135 L200 150 L200 180 L170 195 L140 180" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M200 150 L230 135 L260 150 L260 180 L230 195" stroke-width="1.2" />
-  <!-- Row 4 (partial) -->
-  <path class="hero-deco__path" d="M110 195 L140 210 L140 240 L110 255 L80 240 L80 210" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M170 195 L200 210 L200 240" stroke-width="1.2" />
-  <!-- Corner nodes -->
-  <circle class="hero-deco__node" cx="110" cy="15" r="2.5" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="170" cy="15" r="2.5" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="110" cy="135" r="2.5" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="230" cy="135" r="2.5" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="110" cy="255" r="2.5" fill="currentColor" stroke="none" />
-</svg>
+<script>
+  // Cipher Grid Animation Logic
+  class CipherGrid {
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+    private chars: string[] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+    private fontSize: number = 36; // Tamaño aún más grande
+    private columns: number = 0;
+    private rows: number = 0;
+    private grid: string[][] = [];
+    private frameId: number = 0;
+    
+    // Mouse interaction state
+    private mouseX: number = -1000;
+    private mouseY: number = -1000;
+    private targetMouseX: number = -1000;
+    private targetMouseY: number = -1000;
+    
+    // Theme colors
+    private baseColor = 'rgba(147, 51, 234, 0.08)'; // Base aún más tenue
+    private highlightColor1 = 'rgba(192, 132, 252, 0.6)';
+    private highlightColor2 = 'rgba(216, 180, 254, 1)';
+    
+    // Decrypting effect state
+    private activeDrops: { col: number, row: number, life: number, maxLife: number, speed: number }[] = [];
 
-<!-- Orbital Arcs — center-bottom -->
-<svg
-  class="hero-deco hero-deco--orbital"
-  viewBox="0 0 400 400"
-  fill="none"
-  stroke="currentColor"
-  aria-hidden="true"
->
-  <!-- Concentric arcs -->
-  <path class="hero-deco__path" d="M200 50 A150 150 0 0 1 350 200" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M350 200 A150 150 0 0 1 200 350" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M200 350 A150 150 0 0 1 50 200" stroke-width="1" />
-  <path class="hero-deco__path" d="M200 90 A110 110 0 0 1 310 200" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M310 200 A110 110 0 0 1 200 310" stroke-width="1" />
-  <path class="hero-deco__path" d="M200 130 A70 70 0 0 1 270 200" stroke-width="1.2" />
-  <path class="hero-deco__path" d="M130 200 A70 70 0 0 1 200 130" stroke-width="1" />
-  <!-- Radial lines -->
-  <path class="hero-deco__path" d="M200 200 L200 50" stroke-width="0.8" />
-  <path class="hero-deco__path" d="M200 200 L350 200" stroke-width="0.8" />
-  <path class="hero-deco__path" d="M200 200 L306 94" stroke-width="0.8" />
-  <!-- Data points -->
-  <circle class="hero-deco__node" cx="200" cy="50" r="4" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="350" cy="200" r="4" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="200" cy="350" r="3" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="50" cy="200" r="3" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="310" cy="200" r="3" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="270" cy="200" r="2.5" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="200" cy="200" r="3" fill="currentColor" stroke="none" />
-  <circle class="hero-deco__node" cx="306" cy="94" r="3" fill="currentColor" stroke="none" />
-</svg>
+    constructor(canvasId: string) {
+      const el = document.getElementById(canvasId) as HTMLCanvasElement;
+      if (!el) throw new Error(`Canvas with id ${canvasId} not found`);
+      
+      this.canvas = el;
+      const context = this.canvas.getContext('2d', { alpha: true });
+      if (!context) throw new Error('Could not get 2D context');
+      this.ctx = context;
 
-<style>
-  .hero-deco {
-    position: absolute;
-    color: var(--accent);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .hero-deco--circuit {
-    top: -5%;
-    right: -8%;
-    width: 50vw;
-    max-width: 700px;
-    opacity: 0.12;
-  }
-
-  .hero-deco--hex {
-    left: -6%;
-    top: 30%;
-    width: 45vw;
-    max-width: 600px;
-    opacity: 0.10;
-  }
-
-  .hero-deco--orbital {
-    bottom: -10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 35vw;
-    max-width: 450px;
-    opacity: 0.10;
-  }
-
-  .hero-deco__node {
-    opacity: 0;
-    transform-origin: center;
-    transform: scale(0);
-  }
-
-  @media (max-width: 640px) {
-    .hero-deco {
-      display: none;
+      this.init();
+      this.bindEvents();
+      this.animate();
     }
+
+    private init() {
+      // Set canvas size to window for better tracking
+      const dpr = window.devicePixelRatio || 1;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      this.canvas.width = width * dpr;
+      this.canvas.height = height * dpr;
+      this.canvas.style.width = `${width}px`;
+      this.canvas.style.height = `${height}px`;
+      
+      this.ctx.scale(dpr, dpr);
+
+      // Calculate grid dimensions
+      this.columns = Math.floor(width / this.fontSize);
+      this.rows = Math.floor(height / this.fontSize);
+      
+      // Initialize grid with random hex chars
+      this.grid = Array.from({ length: this.columns }, () => 
+        Array.from({ length: this.rows + 1 }, () => this.getRandomChar())
+      );
+      
+      // Setup initial font for measurement
+      this.ctx.font = `${this.fontSize}px 'JetBrains Mono', 'Fira Code', monospace`;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+    }
+
+    private getRandomChar(): string {
+      return this.chars[Math.floor(Math.random() * this.chars.length)];
+    }
+
+    private bindEvents() {
+      window.addEventListener('resize', this.debounce(() => this.init(), 200));
+      
+      // Listen on window to bypass pointer-events: none issues
+      window.addEventListener('mousemove', (e) => {
+        const rect = this.canvas.getBoundingClientRect();
+        this.targetMouseX = e.clientX - rect.left;
+        this.targetMouseY = e.clientY - rect.top;
+      });
+
+      document.addEventListener('mouseleave', () => {
+        this.targetMouseX = -1000;
+        this.targetMouseY = -1000;
+      });
+    }
+
+    private debounce(func: Function, wait: number) {
+      let timeout: number;
+      return (...args: any[]) => {
+        window.clearTimeout(timeout);
+        timeout = window.setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    private update() {
+      // Smooth mouse interpolation (easing)
+      this.mouseX += (this.targetMouseX - this.mouseX) * 0.1;
+      this.mouseY += (this.targetMouseY - this.mouseY) * 0.1;
+
+      // Add new "decrypting drops" randomly
+      if (Math.random() > 0.7 && this.activeDrops.length < 35) { // Spawn equilibrado, menos caótico
+        this.activeDrops.push({
+          col: Math.floor(Math.random() * this.columns),
+          row: 0,
+          life: 0,
+          maxLife: this.rows * (Math.random() * 0.5 + 0.5),
+          speed: Math.random() * 0.6 + 0.2
+        });
+      }
+
+      // Update active drops
+      for (let i = this.activeDrops.length - 1; i >= 0; i--) {
+        const drop = this.activeDrops[i];
+        drop.life += drop.speed;
+        drop.row = Math.floor(drop.life);
+        
+        if (drop.row >= 0 && drop.row < this.rows && this.grid[drop.col]) {
+             this.grid[drop.col][drop.row] = this.getRandomChar();
+        }
+
+        if (drop.life > drop.maxLife || drop.row >= this.rows) {
+          this.activeDrops.splice(i, 1);
+        }
+      }
+
+      // Ambient background mutation
+      if (Math.random() > 0.4) {
+         const randomCol = Math.floor(Math.random() * this.columns);
+         const randomRow = Math.floor(Math.random() * this.rows);
+         if(this.grid[randomCol]) {
+             this.grid[randomCol][randomRow] = this.getRandomChar();
+         }
+      }
+    }
+
+    private draw() {
+      // Clear with solid color for better performance instead of full transparency recalculation
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      
+      this.ctx.font = `${this.fontSize}px 'JetBrains Mono', 'Fira Code', monospace`;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+
+      const interactionRadius = 150; // Aumentado el radio para mejor efecto
+
+      // Rendimiento: solo dibujamos los caracteres base si es necesario, 
+      // pero como es texto plano simple, ctx.fillText es muy rápido
+      for (let i = 0; i < this.columns; i++) {
+        for (let j = 0; j < this.rows; j++) {
+          const char = this.grid[i]?.[j];
+          if (!char) continue;
+
+          const x = i * this.fontSize + this.fontSize / 2;
+          const y = j * this.fontSize + this.fontSize / 2;
+
+          let color = this.baseColor;
+          let isHighlighted = false;
+
+          // Mouse Hover
+          const dx = x - this.mouseX;
+          const dy = y - this.mouseY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < interactionRadius) {
+            const intensity = 1 - (distance / interactionRadius);
+            this.ctx.globalAlpha = 0.08 + (intensity * 0.92);
+            color = intensity > 0.5 ? this.highlightColor2 : this.highlightColor1;
+            isHighlighted = true;
+          } else {
+             this.ctx.globalAlpha = 1;
+          }
+
+          // Drops
+          if (!isHighlighted) {
+            for (const drop of this.activeDrops) {
+                if (drop.col === i) {
+                    const distanceToDrop = Math.abs(drop.row - j);
+                    if (distanceToDrop === 0) {
+                        color = this.highlightColor2;
+                        this.ctx.globalAlpha = 1;
+                        isHighlighted = true;
+                    } else if (distanceToDrop < 15 && j < drop.row) { // Cola visual más larga
+                        color = this.highlightColor1;
+                        this.ctx.globalAlpha = 1 - (distanceToDrop / 15);
+                        isHighlighted = true;
+                    }
+                }
+            }
+          }
+
+          if(!isHighlighted) {
+              this.ctx.globalAlpha = 1; 
+          }
+
+          this.ctx.fillStyle = color;
+          this.ctx.fillText(char, x, y);
+        }
+      }
+      this.ctx.globalAlpha = 1;
+    }
+
+    private animate = () => {
+      this.update();
+      this.draw();
+      this.frameId = requestAnimationFrame(this.animate);
+    }
+    
+    public destroy() {
+        cancelAnimationFrame(this.frameId);
+        window.removeEventListener('resize', this.init);
+    }
+  }
+
+  // Initialize when the DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+     const initCanvas = () => {
+         const el = document.getElementById('cipher-canvas');
+         if(el) {
+             // @ts-ignore
+             el._cipherGrid = new CipherGrid('cipher-canvas');
+         }
+     };
+     
+     initCanvas();
+     document.addEventListener('astro:page-load', initCanvas);
+  });
+</script>
+
+<style is:global>
+  .hero-cipher-container {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none; /* Let clicks pass through to buttons */
+    z-index: 0;
+    overflow: hidden;
+    /* Adding a gradient mask to fade out the grid at the edges for a polished look */
+    mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 80%);
+  }
+
+  #cipher-canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: auto; /* Allow mouse tracking on canvas specifically */
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 </style>
