@@ -1,0 +1,41 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Intro to Cryptography',
+  description = 'A hands-on introduction to cryptography with Rust and WebAssembly.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+    <script>
+      import '../scripts/smooth-scroll';
+      import '../scripts/animations/hero-timeline';
+      import '../scripts/animations/scroll-animations';
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

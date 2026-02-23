@@ -1,0 +1,160 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import PracticeCard from '../components/PracticeCard.astro';
+import Footer from '../components/Footer.astro';
+
+const practices = [
+  {
+    title: 'Steganography',
+    description: 'Hide secret messages inside images using LSB encoding. Upload a file and embed hidden data invisible to the naked eye.',
+    tags: ['LSB', 'images', 'encoding'],
+  },
+  {
+    title: 'Caesar Cipher',
+    description: 'Shift letters to encrypt and decrypt messages with one of the oldest known ciphers. Break it with frequency analysis.',
+    tags: ['substitution', 'classical', 'shift'],
+  },
+  {
+    title: 'Hashing',
+    description: 'Generate cryptographic hashes with SHA-256. Understand one-way functions and integrity verification.',
+    tags: ['SHA-256', 'digest', 'integrity'],
+  },
+  {
+    title: 'Symmetric Encryption',
+    description: 'Encrypt and decrypt files using AES. Learn how symmetric keys work and why key management matters.',
+    tags: ['AES', 'keys', 'block-cipher'],
+  },
+];
+---
+
+<Base>
+  <Header />
+  <main>
+    <Hero />
+
+    <section id="practices" class="practices">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">What you'll build</span>
+          <h2 class="section-title">PRACTICES</h2>
+        </div>
+        <div class="practices__grid">
+          {practices.map((p, i) => (
+            <PracticeCard
+              title={p.title}
+              description={p.description}
+              tags={p.tags}
+              index={i + 1}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about">
+      <div class="container">
+        <div class="about__layout">
+          <div class="about__left">
+            <span class="section-label">The approach</span>
+            <h2 class="section-title">LEARN BY<br />DOING.</h2>
+          </div>
+          <div class="about__right">
+            <p class="about__text">
+              Each practice is implemented in <strong>Rust</strong>, compiled to
+              <strong>WebAssembly</strong>, and runs entirely in your browser.
+            </p>
+            <p class="about__text">
+              Upload files, transform data, and see results in real time — no
+              servers involved. Understand the algorithms, see them work, and
+              experiment with your own inputs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .section-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    margin-bottom: 3rem;
+  }
+
+  /* ── Practices ───────────────────────────────────────── */
+  .practices {
+    padding: 6rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .practices__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  /* ── About ───────────────────────────────────────────── */
+  .about {
+    padding: 6rem 0 8rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .about__layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .about__left .section-title {
+    margin-bottom: 0;
+  }
+
+  .about__right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-top: 2.5rem;
+  }
+
+  .about__text {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  .about__text strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .practices__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about__layout {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .about__right {
+      padding-top: 0;
+    }
+  }
+</style>

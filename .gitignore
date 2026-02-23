@@ -1,0 +1,19 @@
+# Rust
+target/
+Cargo.lock
+
+# Node / Astro
+web/node_modules/
+web/dist/
+web/.astro/
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*

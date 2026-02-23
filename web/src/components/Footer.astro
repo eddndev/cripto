@@ -1,0 +1,287 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__grid">
+
+      <!-- Site Map -->
+      <nav class="footer__map">
+        <h2 class="footer__map-heading">[ Explore ]</h2>
+        <div class="footer__map-list">
+          <a href="#practices" class="footer__map-item">
+            <span class="footer__map-name">Practices</span>
+            <span class="footer__map-desc">Encrypt / Hash / Hide</span>
+          </a>
+          <a href="#about" class="footer__map-item">
+            <span class="footer__map-name">About</span>
+            <span class="footer__map-desc">Rust / WASM</span>
+          </a>
+          <a href="https://github.com/eddndev" target="_blank" rel="noopener noreferrer" class="footer__map-item">
+            <span class="footer__map-name">GitHub</span>
+            <span class="footer__map-desc">Source / Projects</span>
+          </a>
+        </div>
+      </nav>
+
+      <!-- CTA / Contact -->
+      <div class="footer__cta">
+        <div class="footer__cta-content">
+          <span class="footer__cta-dot" aria-hidden="true"></span>
+          <h3 class="footer__cta-title">LET'S<br /><span class="footer__cta-accent">TALK.</span></h3>
+          <p class="footer__cta-text">
+            Have a question, want to collaborate, or just want to chat about cryptography and Rust?
+          </p>
+        </div>
+        <div class="footer__cta-actions">
+          <a href="#" id="email-cta" class="footer__cta-btn">Start Conversation</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer__bar">
+      <span class="footer__bar-copy">&copy; {currentYear} EDDN.DEV. ALL RIGHTS RESERVED.</span>
+      <div class="footer__bar-links">
+        <a href="https://github.com/eddndev" target="_blank" rel="noopener noreferrer" class="footer__bar-link">GITHUB</a>
+        <a href="https://www.linkedin.com/in/eddndev" target="_blank" rel="noopener noreferrer" class="footer__bar-link">LINKEDIN</a>
+        <a href="https://x.com/eddndev" target="_blank" rel="noopener noreferrer" class="footer__bar-link">X</a>
+        <a href="https://instagram.com/_eddndev" target="_blank" rel="noopener noreferrer" class="footer__bar-link">INSTAGRAM</a>
+        <a href="https://eddndev.com" target="_blank" rel="noopener noreferrer" class="footer__bar-link">EDDNDEV.COM</a>
+        <a href="https://achrony.me" target="_blank" rel="noopener noreferrer" class="footer__bar-link">ACHRONY.ME</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const emailCta = document.getElementById('email-cta');
+  if (emailCta) {
+    emailCta.addEventListener('click', (e) => {
+      e.preventDefault();
+      const user = 'contacto';
+      const domain = 'eddn.dev';
+      window.location.href = `mailto:${user}@${domain}`;
+    });
+    emailCta.addEventListener('mouseover', () => {
+      const user = 'contacto';
+      const domain = 'eddn.dev';
+      emailCta.setAttribute('href', `mailto:${user}@${domain}`);
+    });
+  }
+</script>
+
+<style>
+  /* ── Footer ──────────────────────────────────────────── */
+  .footer {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6rem 0;
+    border-top: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .footer__inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+
+  /* ── Site Map ─────────────────────────────────────────── */
+  .footer__map {
+    display: none;
+  }
+
+  .footer__map-heading {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 3rem;
+    line-height: 1;
+  }
+
+  .footer__map-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer__map-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    width: 100%;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    transition: border-color 0.3s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .footer__map-item:hover {
+    border-color: var(--accent-deep);
+  }
+
+  .footer__map-name {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    transition: color 0.3s;
+  }
+
+  .footer__map-item:hover .footer__map-name {
+    color: var(--text-primary);
+  }
+
+  .footer__map-desc {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    transition: color 0.3s;
+    letter-spacing: 0.02em;
+  }
+
+  .footer__map-item:hover .footer__map-desc {
+    color: var(--accent);
+  }
+
+  /* ── CTA ──────────────────────────────────────────────── */
+  .footer__cta {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .footer__cta-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer__cta-dot {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+
+  .footer__cta-title {
+    font-size: clamp(4rem, 8vw, 7rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+  }
+
+  .footer__cta-accent {
+    color: var(--accent);
+  }
+
+  .footer__cta-text {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 440px;
+  }
+
+  .footer__cta-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .footer__cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2.5rem;
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 100px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 24px rgba(167, 139, 250, 0.2);
+  }
+
+  .footer__cta-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 32px rgba(167, 139, 250, 0.35);
+  }
+
+  /* ── Bottom Bar ──────────────────────────────────────── */
+  .footer__bar {
+    margin-top: 6rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+  }
+
+  .footer__bar-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+  }
+
+  .footer__bar-link {
+    transition: color 0.2s;
+  }
+
+  .footer__bar-link:hover {
+    color: var(--accent);
+  }
+
+  /* ── Responsive ──────────────────────────────────────── */
+  @media (min-width: 1024px) {
+    .footer__map {
+      display: block;
+    }
+
+    .footer__grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .footer__cta {
+      justify-content: space-between;
+      min-height: 100%;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .footer__bar {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .footer__cta-title {
+      font-size: clamp(3rem, 12vw, 5rem);
+    }
+  }
+</style>

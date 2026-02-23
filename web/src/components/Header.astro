@@ -1,0 +1,61 @@
+---
+
+---
+
+<header class="header">
+  <div class="container header__inner">
+    <a href="/" class="header__logo">cripto</a>
+    <nav class="header__nav">
+      <a href="#practices"><span class="header__num">01</span> // PRACTICES</a>
+      <a href="#about"><span class="header__num">02</span> // ABOUT</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem;
+  }
+
+  .header__logo {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  .header__nav {
+    display: flex;
+    gap: 2.5rem;
+  }
+
+  .header__nav a {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+
+  .header__nav a:hover {
+    color: var(--text-primary);
+  }
+
+  .header__num {
+    color: var(--accent);
+  }
+</style>

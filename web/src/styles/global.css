@@ -1,0 +1,107 @@
+/* ── Custom Properties ──────────────────────────────────── */
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-card: #111111;
+  --bg-card-hover: #161616;
+  --accent: #a78bfa;
+  --accent-hover: #c4b5fd;
+  --accent-deep: #7c3aed;
+  --text-primary: #f0f0f0;
+  --text-secondary: #737373;
+  --border: #1e1e1e;
+  --font-ui: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --max-width: 1200px;
+}
+
+/* ── Reset ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* ── Typography ────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  line-height: 1;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+}
+
+code, pre {
+  font-family: var(--font-mono);
+}
+
+/* ── Utilities ─────────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: 2rem;
+}
+
+/* ── Dot Grid Background ───────────────────────────────── */
+.dot-grid {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.dot-grid::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background-image: radial-gradient(circle, var(--accent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.12;
+  mask-image: radial-gradient(ellipse 60% 70% at 70% 40%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 70% at 70% 40%, black 20%, transparent 70%);
+}
+
+/* ── Anti-FOUC: hidden until GSAP animates ────────────── */
+.hero__label,
+.hero__title-line,
+.hero__separator,
+.hero__bottom,
+#practices .section-label,
+#practices .section-title,
+.card,
+.about__left,
+.about__right {
+  opacity: 0;
+}

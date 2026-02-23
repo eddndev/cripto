@@ -1,0 +1,144 @@
+---
+import HeroDecorations from './HeroDecorations.astro';
+---
+
+<section class="hero">
+  <HeroDecorations />
+  <div class="dot-grid" aria-hidden="true"></div>
+  <div class="container hero__inner">
+    <span class="hero__label">Hands-on cryptography</span>
+    <h1 class="hero__title">
+      <span class="hero__title-line">ENCRYPT.</span>
+      <span class="hero__title-line hero__accent">HIDE.</span>
+    </h1>
+    <div class="hero__separator"></div>
+    <div class="hero__bottom">
+      <p class="hero__description">
+        A practical introduction to cryptography.
+        Implemented in <strong>Rust</strong>, compiled to <strong>WebAssembly</strong>,
+        running entirely in your browser.
+      </p>
+      <div class="hero__actions">
+        <a href="#practices" class="hero__cta hero__cta--solid">Explore Practices</a>
+        <a href="#about" class="hero__cta hero__cta--outline">Learn More →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding: 8rem 0 5rem;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+
+  .hero__label {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero__label::before {
+    content: '●';
+    margin-right: 0.5rem;
+    font-size: 0.6rem;
+    vertical-align: middle;
+  }
+
+  .hero__title {
+    font-size: clamp(4rem, 11vw, 9rem);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+  }
+
+  .hero__title-line {
+    display: block;
+  }
+
+  .hero__accent {
+    color: var(--accent);
+  }
+
+  .hero__separator {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 3rem 0;
+  }
+
+  .hero__bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 3rem;
+  }
+
+  .hero__description {
+    max-width: 480px;
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  .hero__description strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .hero__actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+
+  .hero__cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.8rem 2rem;
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .hero__cta--solid {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+  }
+
+  .hero__cta--solid:hover {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .hero__cta--outline {
+    color: var(--text-secondary);
+  }
+
+  .hero__cta--outline:hover {
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 768px) {
+    .hero__bottom {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

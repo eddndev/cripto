@@ -1,0 +1,97 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  tags: string[];
+  index: number;
+  comingSoon?: boolean;
+}
+
+const { title, description, tags, index, comingSoon = true } = Astro.props;
+const num = String(index).padStart(2, '0');
+---
+
+<article class="card">
+  <div class="card__header">
+    <span class="card__num">{num}</span>
+    {comingSoon && <span class="card__badge">SOON</span>}
+  </div>
+  <h3 class="card__title">{title}</h3>
+  <p class="card__description">{description}</p>
+  <div class="card__tags">
+    {tags.map((tag) => <span class="card__tag">{tag}</span>)}
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    padding: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    transition: border-color 0.3s, background 0.3s;
+  }
+
+  .card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--accent-deep);
+  }
+
+  .card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .card__num {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .card__badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--accent-deep);
+    color: var(--accent);
+  }
+
+  .card__title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .card__description {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+    text-transform: none;
+  }
+
+  .card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .card__tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+  }
+
+  .card__tag::before {
+    content: '#';
+    color: var(--accent-deep);
+  }
+</style>
