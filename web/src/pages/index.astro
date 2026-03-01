@@ -19,13 +19,13 @@ const practices = [
   <main>
     <Hero />
 
-    <section id="practices" class="practices">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-label">What you'll build</span>
-          <h2 class="section-title">PRACTICES</h2>
+    <section id="practices" class="py-24 border-t border-border">
+      <div class="mx-auto w-full max-w-[1200px] px-8">
+        <div>
+          <span class="section-label block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">What you'll build</span>
+          <h2 class="section-title text-[clamp(2.5rem,5vw,4rem)] mb-12">PRACTICES</h2>
         </div>
-        <div class="practices__grid">
+        <div class="grid grid-cols-2 max-md:grid-cols-1 gap-px bg-border border border-border">
           {practices.map((p, i) => (
             <PracticeCard
               title={p.title}
@@ -38,19 +38,19 @@ const practices = [
       </div>
     </section>
 
-    <section id="about" class="about">
-      <div class="container">
-        <div class="about__layout">
+    <section id="about" class="py-24 pb-32 border-t border-border">
+      <div class="mx-auto w-full max-w-[1200px] px-8">
+        <div class="grid grid-cols-2 max-md:grid-cols-1 gap-16 max-md:gap-8 items-start">
           <div class="about__left">
-            <span class="section-label">The approach</span>
-            <h2 class="section-title">LEARN BY<br />DOING.</h2>
+            <span class="section-label block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">The approach</span>
+            <h2 class="section-title text-[clamp(2.5rem,5vw,4rem)] mb-0">LEARN BY<br />DOING.</h2>
           </div>
-          <div class="about__right">
-            <p class="about__text">
+          <div class="about__right flex flex-col gap-5 pt-10 max-md:pt-0">
+            <p class="text-text-secondary text-[1.05rem] leading-[1.7] [&_strong]:text-text-primary [&_strong]:font-semibold">
               Each practice is implemented in <strong>Rust</strong>, compiled to
               <strong>WebAssembly</strong>, and runs entirely in your browser.
             </p>
-            <p class="about__text">
+            <p class="text-text-secondary text-[1.05rem] leading-[1.7] [&_strong]:text-text-primary [&_strong]:font-semibold">
               Upload files, transform data, and see results in real time — no
               servers involved. Understand the algorithms, see them work, and
               experiment with your own inputs.
@@ -62,84 +62,3 @@ const practices = [
   </main>
   <Footer />
 </Base>
-
-<style>
-  .section-label {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.75rem;
-  }
-
-  .section-title {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    margin-bottom: 3rem;
-  }
-
-  /* ── Practices ───────────────────────────────────────── */
-  .practices {
-    padding: 6rem 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .practices__grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-
-  /* ── About ───────────────────────────────────────────── */
-  .about {
-    padding: 6rem 0 8rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .about__layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: start;
-  }
-
-  .about__left .section-title {
-    margin-bottom: 0;
-  }
-
-  .about__right {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    padding-top: 2.5rem;
-  }
-
-  .about__text {
-    color: var(--text-secondary);
-    font-size: 1.05rem;
-    line-height: 1.7;
-  }
-
-  .about__text strong {
-    color: var(--text-primary);
-    font-weight: 600;
-  }
-
-  @media (max-width: 768px) {
-    .practices__grid {
-      grid-template-columns: 1fr;
-    }
-
-    .about__layout {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-
-    .about__right {
-      padding-top: 0;
-    }
-  }
-</style>

@@ -1,77 +1,62 @@
-/* ── Custom Properties ──────────────────────────────────── */
-:root {
-  --bg-primary: #0a0a0a;
-  --bg-card: #111111;
-  --bg-card-hover: #161616;
-  --accent: #a78bfa;
-  --accent-hover: #c4b5fd;
-  --accent-deep: #7c3aed;
-  --text-primary: #f0f0f0;
-  --text-secondary: #737373;
-  --border: #1e1e1e;
+@import "tailwindcss";
+
+/* ── Theme ────────────────────────────────────────────── */
+@theme {
+  --color-bg-primary: #0a0a0a;
+  --color-bg-card: #111111;
+  --color-bg-card-hover: #161616;
+  --color-accent: #a78bfa;
+  --color-accent-hover: #c4b5fd;
+  --color-accent-deep: #7c3aed;
+  --color-text-primary: #f0f0f0;
+  --color-text-secondary: #737373;
+  --color-border: #1e1e1e;
   --font-ui: 'Space Grotesk', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --max-width: 1200px;
 }
 
-/* ── Reset ─────────────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* ── Base Reset ───────────────────────────────────────── */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
 
-html {
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    font-family: var(--font-ui);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
 
-body {
-  font-family: var(--font-ui);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
-  min-height: 100dvh;
-  overflow-x: hidden;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  img {
+    display: block;
+    max-width: 100%;
+  }
 
-img {
-  display: block;
-  max-width: 100%;
-}
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
 
-button {
-  font: inherit;
-  cursor: pointer;
-  border: none;
-  background: none;
-}
+  h1, h2, h3, h4 {
+    line-height: 1;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+  }
 
-/* ── Typography ────────────────────────────────────────── */
-h1, h2, h3, h4 {
-  line-height: 1;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.03em;
-}
-
-code, pre {
-  font-family: var(--font-mono);
-}
-
-/* ── Utilities ─────────────────────────────────────────── */
-.container {
-  width: 100%;
-  max-width: var(--max-width);
-  margin-inline: auto;
-  padding-inline: 2rem;
+  code, pre {
+    font-family: var(--font-mono);
+  }
 }
 
 /* ── Dot Grid Background ───────────────────────────────── */
@@ -86,7 +71,7 @@ code, pre {
   content: '';
   position: absolute;
   inset: -20%;
-  background-image: radial-gradient(circle, var(--accent) 1px, transparent 1px);
+  background-image: radial-gradient(circle, var(--color-accent) 1px, transparent 1px);
   background-size: 28px 28px;
   opacity: 0.12;
   mask-image: radial-gradient(ellipse 60% 70% at 70% 40%, black 20%, transparent 70%);

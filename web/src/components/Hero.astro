@@ -2,137 +2,36 @@
 import HeroDecorations from './HeroDecorations.astro';
 ---
 
-<section class="hero">
+<section class="hero relative py-32 pb-20 min-h-screen flex items-center">
   <HeroDecorations />
   <div class="dot-grid" aria-hidden="true"></div>
-  <div class="container hero__inner">
-    <span class="hero__label">Hands-on cryptography</span>
-    <h1 class="hero__title">
-      <span class="hero__title-line">ENCRYPT.</span>
-      <span class="hero__title-line hero__accent">HIDE.</span>
+  <div class="hero__inner relative z-1 w-full mx-auto max-w-[1200px] px-8">
+    <span class="hero__label inline-block font-mono text-[0.8rem] font-medium text-accent uppercase tracking-[0.1em] mb-6">Hands-on cryptography</span>
+    <h1 class="text-[clamp(4rem,11vw,9rem)] font-black leading-[0.92] tracking-[-0.04em]">
+      <span class="hero__title-line block">ENCRYPT.</span>
+      <span class="hero__title-line block text-accent">HIDE.</span>
     </h1>
-    <div class="hero__separator"></div>
-    <div class="hero__bottom">
-      <p class="hero__description">
+    <div class="hero__separator w-full h-px bg-border my-12"></div>
+    <div class="hero__bottom flex items-end justify-between gap-12 max-md:flex-col max-md:items-start">
+      <p class="max-w-[480px] text-[#a3a3a3] text-[1.05rem] leading-[1.7] [&_strong]:text-text-primary [&_strong]:font-semibold">
         A practical introduction to cryptography.
         Implemented in <strong>Rust</strong>, compiled to <strong>WebAssembly</strong>,
         running entirely in your browser.
       </p>
-      <div class="hero__actions">
-        <a href="#practices" class="hero__cta hero__cta--solid">Explore Practices</a>
-        <a href="#about" class="hero__cta hero__cta--outline">Learn More →</a>
+      <div class="flex gap-4 shrink-0 max-md:flex-col max-md:w-full">
+        <a href="#practices" class="hero__cta--solid inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-all duration-200 bg-text-primary text-bg-primary hover:bg-accent hover:text-black max-md:w-full max-md:justify-center">Explore Practices</a>
+        <a href="#about" class="inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-colors duration-200 text-text-secondary hover:text-text-primary max-md:w-full max-md:justify-center">Learn More →</a>
       </div>
     </div>
   </div>
 </section>
 
 <style>
-  .hero {
-    position: relative;
-    padding: 8rem 0 5rem;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-
-  .hero__inner {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-  }
-
-  .hero__label {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 1.5rem;
-  }
-
   .hero__label::before {
     content: '●';
     margin-right: 0.5rem;
     font-size: 0.6rem;
     vertical-align: middle;
-  }
-
-  .hero__title {
-    font-size: clamp(4rem, 11vw, 9rem);
-    font-weight: 900;
-    line-height: 0.92;
-    letter-spacing: -0.04em;
-  }
-
-  .hero__title-line {
-    display: block;
-  }
-
-  .hero__accent {
-    color: var(--accent);
-  }
-
-  .hero__separator {
-    width: 100%;
-    height: 1px;
-    background: var(--border);
-    margin: 3rem 0;
-  }
-
-  .hero__bottom {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 3rem;
-  }
-
-  .hero__description {
-    max-width: 480px;
-    color: #a3a3a3;
-    font-size: 1.05rem;
-    line-height: 1.7;
-  }
-
-  .hero__description strong {
-    color: var(--text-primary);
-    font-weight: 600;
-  }
-
-  .hero__actions {
-    display: flex;
-    gap: 1rem;
-    flex-shrink: 0;
-  }
-
-  .hero__cta {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.8rem 2rem;
-    border-radius: 100px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    white-space: nowrap;
-    transition: all 0.2s;
-  }
-
-  .hero__cta--solid {
-    background: var(--text-primary);
-    color: var(--bg-primary);
-  }
-
-  .hero__cta--solid:hover {
-    background: var(--accent);
-    color: #000;
-  }
-
-  .hero__cta--outline {
-    color: var(--text-secondary);
-  }
-
-  .hero__cta--outline:hover {
-    color: var(--text-primary);
   }
 
   @media (max-width: 768px) {
@@ -144,21 +43,6 @@ import HeroDecorations from './HeroDecorations.astro';
       );
       padding: 2rem 1rem;
       border-radius: 1rem;
-    }
-
-    .hero__bottom {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .hero__actions {
-      flex-direction: column;
-      width: 100%;
-    }
-
-    .hero__cta {
-      width: 100%;
-      justify-content: center;
     }
   }
 </style>

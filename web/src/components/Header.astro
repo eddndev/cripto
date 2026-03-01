@@ -2,45 +2,43 @@
 
 ---
 
-<header class="header">
-  <div class="container header__inner">
-    <a href="/" class="header__logo">cripto</a>
-    
+<header class="sticky top-0 z-100 bg-[rgba(10,10,10,0.85)] backdrop-blur-[12px]">
+  <div class="mx-auto w-full max-w-[1200px] px-8 flex items-center justify-between h-16">
+    <a href="/" class="font-mono text-[1.1rem] font-bold text-text-primary tracking-[-0.02em] relative z-[102]">cripto</a>
+
     <input type="checkbox" id="mobile-menu-toggle" class="header__toggle-checkbox" aria-hidden="true" />
     <label for="mobile-menu-toggle" class="header__toggle-label" aria-label="Toggle menu">
       <span class="header__hamburger"></span>
     </label>
 
     <nav class="header__nav">
-      <!-- Desktop layout remains a standard flex row, Mobile layout uses Grid -->
-      <ul class="header__nav-list">
+      <ul class="header__nav-list flex gap-10 list-none m-0 p-0">
         <li class="header__nav-item">
-          <a href="#practices" class="header__link">
-            <span class="header__num">01</span>
-            <span class="header__text">PRACTICES</span>
-            <span class="header__sub">Core algorithms</span>
+          <a href="#practices" class="header__link flex items-baseline gap-2 no-underline transition-colors duration-200">
+            <span class="font-mono text-xs text-accent">01</span>
+            <span class="header__text font-mono text-xs font-medium text-text-secondary tracking-[0.05em] transition-colors duration-200">PRACTICES</span>
+            <span class="header__sub hidden">Core algorithms</span>
           </a>
         </li>
         <li class="header__nav-item">
-          <a href="#about" class="header__link">
-            <span class="header__num">02</span>
-            <span class="header__text">ABOUT</span>
-            <span class="header__sub">Project details</span>
+          <a href="#about" class="header__link flex items-baseline gap-2 no-underline transition-colors duration-200">
+            <span class="font-mono text-xs text-accent">02</span>
+            <span class="header__text font-mono text-xs font-medium text-text-secondary tracking-[0.05em] transition-colors duration-200">ABOUT</span>
+            <span class="header__sub hidden">Project details</span>
           </a>
         </li>
-        <!-- Extra item added to balance the grid visually on mobile -->
-        <li class="header__nav-item header__nav-item--mobile-only">
-          <a href="https://github.com/eddndev/cripto" target="_blank" rel="noopener noreferrer" class="header__link">
-            <span class="header__num">03</span>
-            <span class="header__text">SOURCE</span>
-            <span class="header__sub">GitHub Repo</span>
+        <li class="header__nav-item header__nav-item--mobile-only hidden">
+          <a href="https://github.com/eddndev/cripto" target="_blank" rel="noopener noreferrer" class="header__link flex items-baseline gap-2 no-underline transition-colors duration-200">
+            <span class="font-mono text-xs text-accent">03</span>
+            <span class="header__text font-mono text-xs font-medium text-text-secondary tracking-[0.05em] transition-colors duration-200">SOURCE</span>
+            <span class="header__sub hidden">GitHub Repo</span>
           </a>
         </li>
       </ul>
-      
-      <div class="header__mobile-footer">
+
+      <div class="header__mobile-footer hidden">
         <span>sys.status: online</span>
-        <span class="header__mobile-accent">rustc 1.76.0</span>
+        <span class="text-accent">rustc 1.76.0</span>
       </div>
     </nav>
   </div>
@@ -58,32 +56,7 @@
 </script>
 
 <style>
-  .header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(10, 10, 10, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  .header__inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 4rem;
-  }
-
-  .header__logo {
-    font-family: var(--font-mono);
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    position: relative;
-    z-index: 102;
-  }
-
+  /* Checkbox hidden accessibly */
   .header__toggle-checkbox {
     position: absolute;
     opacity: 0;
@@ -98,49 +71,8 @@
     display: none;
   }
 
-  /* Desktop Default State */
-  .header__nav-list {
-    display: flex;
-    gap: 2.5rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .header__link {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .header__num {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--accent);
-  }
-
-  .header__text {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    letter-spacing: 0.05em;
-    transition: color 0.2s;
-  }
-
   .header__link:hover .header__text {
-    color: var(--text-primary);
-  }
-
-  .header__sub {
-    display: none; /* Hidden on desktop */
-  }
-
-  .header__mobile-footer,
-  .header__nav-item--mobile-only {
-    display: none; /* Hidden on desktop */
+    color: var(--color-text-primary);
   }
 
   /* =========================================
@@ -164,7 +96,7 @@
       display: block;
       width: 24px;
       height: 2px;
-      background-color: var(--text-primary);
+      background-color: var(--color-text-primary);
       transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease;
       position: absolute;
     }
@@ -179,7 +111,7 @@
       transform: translateY(8px);
     }
 
-    /* Modern Grid Layout Container */
+    /* Full-screen nav overlay */
     .header__nav {
       position: fixed;
       top: 0;
@@ -189,13 +121,10 @@
       background: rgba(10, 10, 10, 0.98);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-
       display: flex;
       flex-direction: column;
       padding: 6rem 2rem 2rem;
       overflow-y: auto;
-
-      /* Animation state (hidden by default) */
       opacity: 0;
       visibility: hidden;
       transform: translateY(-10px);
@@ -203,85 +132,79 @@
       z-index: 101;
     }
 
-    /* The Bento Grid */
+    /* Bento Grid */
     .header__nav-list {
-      display: grid;
+      display: grid !important;
       grid-template-columns: repeat(2, 1fr);
       grid-auto-rows: minmax(120px, auto);
-      gap: 1rem;
+      gap: 1rem !important;
       width: 100%;
       align-content: start;
     }
 
-    /* First item spans full width to anchor the grid */
     .header__nav-item:nth-child(1) {
       grid-column: span 2;
     }
 
     .header__nav-item--mobile-only {
-      display: block;
+      display: block !important;
     }
 
-    /* Grid Item Styling (The "Cards") */
+    /* Grid card styling */
     .header__link {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
       height: 100%;
       padding: 1.25rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
       border-radius: 0;
       transition: background 0.3s, border-color 0.3s;
-      text-decoration: none;
     }
 
     .header__link:active {
-      background: var(--bg-card-hover);
-      border-color: var(--accent-deep);
+      background: var(--color-bg-card-hover);
+      border-color: var(--color-accent-deep);
     }
 
     /* Typography inside mobile grid cards */
-    .header__num {
+    .header__link .font-mono:first-child {
       align-self: flex-end;
       font-size: 0.85rem;
       opacity: 0.5;
     }
 
     .header__text {
-      font-size: 1.5rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
+      font-size: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.02em !important;
+      color: var(--color-text-primary) !important;
       margin-top: auto;
       margin-bottom: 0.25rem;
     }
 
     .header__sub {
-      display: block;
+      display: block !important;
       font-family: var(--font-ui);
       font-size: 0.85rem;
-      color: var(--text-secondary);
+      color: var(--color-text-secondary);
       line-height: 1.4;
     }
 
     /* Tech Footer */
     .header__mobile-footer {
-      display: flex;
+      display: flex !important;
       justify-content: space-between;
       width: 100%;
       margin-top: auto;
       padding-top: 2rem;
       font-family: var(--font-mono);
       font-size: 0.7rem;
-      color: var(--text-secondary);
+      color: var(--color-text-secondary);
       border-top: 1px solid rgba(255, 255, 255, 0.05);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-    }
-
-    .header__mobile-accent {
-      color: var(--accent);
     }
 
     /* Checkbox interactions */
@@ -297,12 +220,12 @@
 
     .header__toggle-checkbox:checked ~ .header__toggle-label .header__hamburger::before {
       transform: translateY(0) rotate(45deg);
-      background-color: var(--text-primary);
+      background-color: var(--color-text-primary);
     }
 
     .header__toggle-checkbox:checked ~ .header__toggle-label .header__hamburger::after {
       transform: translateY(0) rotate(-45deg);
-      background-color: var(--text-primary);
+      background-color: var(--color-text-primary);
     }
   }
 </style>

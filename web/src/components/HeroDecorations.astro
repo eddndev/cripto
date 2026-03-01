@@ -2,8 +2,8 @@
 
 ---
 
-<div class="hero-cipher-container" aria-hidden="true">
-  <canvas id="cipher-canvas"></canvas>
+<div class="hero-cipher-container absolute! inset-0 w-full! h-full! pointer-events-none z-0 overflow-hidden max-md:opacity-45" aria-hidden="true">
+  <canvas id="cipher-canvas" class="block w-full! h-full! pointer-events-auto absolute top-0 left-0"></canvas>
 </div>
 
 <script>
@@ -426,16 +426,6 @@
 
 <style is:global>
   .hero-cipher-container {
-    position: absolute !important;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100% !important;
-    height: 100% !important;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
     mask-image: radial-gradient(
       ellipse at center,
       rgba(0, 0, 0, 1) 30%,
@@ -446,21 +436,5 @@
       rgba(0, 0, 0, 1) 30%,
       rgba(0, 0, 0, 0) 80%
     );
-  }
-
-  @media (max-width: 768px) {
-    .hero-cipher-container {
-      opacity: 0.45;
-    }
-  }
-
-  #cipher-canvas {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-    pointer-events: auto; /* Allow mouse tracking on canvas specifically */
-    position: absolute;
-    top: 0;
-    left: 0;
   }
 </style>
