@@ -87,12 +87,14 @@
 .prose h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  text-transform: none;
-  letter-spacing: -0.01em;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.3 !important;
   color: var(--color-text-primary);
   margin-top: 2.5rem;
   margin-bottom: 1rem;
-  line-height: 1.3;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a30;
 }
 
 .prose h2:first-child {
@@ -100,18 +102,18 @@
 }
 
 .prose h3 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--color-text-primary);
-  margin-top: 2rem;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  line-height: 1.3 !important;
+  color: var(--color-accent-hover);
+  margin-top: 1.75rem;
   margin-bottom: 0.75rem;
-  line-height: 1.3;
 }
 
 .prose p {
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
 }
 
 .prose strong {
@@ -131,7 +133,7 @@
 
 .prose ul, .prose ol {
   padding-left: 1.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
 }
 
 .prose ul {
@@ -143,7 +145,7 @@
 }
 
 .prose li {
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 .prose li::marker {
@@ -151,18 +153,21 @@
 }
 
 .prose code:not(pre code) {
-  background: var(--color-bg-card-hover);
+  background: #1e1e28;
   color: var(--color-accent);
-  padding: 0.15em 0.4em;
-  border-radius: 3px;
-  font-size: 0.88em;
+  padding: 0.15em 0.45em;
+  border-radius: 4px;
+  font-size: 0.86em;
+  border: 1px solid #2a2a34;
 }
 
 .prose pre {
   background: #0c0c12 !important;
   border: 1px solid #3a3a42;
+  border-radius: 6px;
   padding: 1.25rem;
-  margin-bottom: 1.25rem;
+  margin-top: 0.75rem;
+  margin-bottom: 1.5rem;
   overflow-x: auto;
   font-size: 0.82rem;
   line-height: 1.7;
@@ -179,27 +184,43 @@
 .prose hr {
   border: none;
   border-top: 1px solid #3a3a42;
-  margin: 2rem 0;
+  margin: 2.5rem 0;
 }
 
 .prose table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 1.25rem;
-  font-size: 0.88rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.86rem;
+  border: 1px solid #3a3a42;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .prose th {
   text-align: left;
   font-weight: 600;
-  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-accent);
+  background: #12121a;
   border-bottom: 1px solid #3a3a42;
-  padding: 0.5rem 0.75rem;
+  padding: 0.6rem 0.85rem;
 }
 
 .prose td {
-  border-bottom: 1px solid var(--color-border);
-  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #27272e;
+  padding: 0.5rem 0.85rem;
+}
+
+.prose tr:last-child td {
+  border-bottom: none;
+}
+
+.prose tr:hover td {
+  background: #12121a;
 }
 
 /* ── Anti-FOUC: hidden until GSAP animates ────────────── */

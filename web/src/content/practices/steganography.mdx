@@ -16,19 +16,33 @@ In this practice we use **Least Significant Bit (LSB) encoding** to embed arbitr
 
 ## The BMP format
 
-A 24-bit BMP file has a simple, uncompressed structure:
+A 24-bit BMP file has a simple, uncompressed structure composed of two headers followed by pixel data. The minimum header size is **54 bytes** — the sum of the BMP File Header (14 bytes) and the BITMAPINFOHEADER DIB header (40 bytes).
+
+**BMP File Header** (14 bytes):
 
 | Offset | Size | Field |
 |--------|------|-------|
 | 0–1 | 2 B | Signature `"BM"` |
 | 2–5 | 4 B | File size |
+| 6–9 | 4 B | Reserved (unused) |
 | 10–13 | 4 B | Pixel data offset |
-| 14–17 | 4 B | DIB header size (40) |
-| 18–21 | 4 B | Width (pixels) |
-| 22–25 | 4 B | Height (signed) |
-| 28–29 | 2 B | Bits per pixel (24) |
 
-After the header, pixel data is stored **row by row** in BGR order (not RGB). Each row is padded to a multiple of 4 bytes. For a 5-pixel-wide image, each row occupies `5 × 3 = 15` bytes of color data plus 1 byte of padding = 16 bytes.
+**DIB Header — BITMAPINFOHEADER** (40 bytes):
+
+| Offset | Size | Field |
+|--------|------|-------|
+| 14–17 | 4 B | DIB header size (`40`) |
+| 18–21 | 4 B | Width (pixels) |
+| 22–25 | 4 B | Height (signed, negative = top-down) |
+| 26–27 | 2 B | Color planes (`1`) |
+| 28–29 | 2 B | Bits per pixel (`24`) |
+| 30–53 | 24 B | Compression, image size, resolution, colors (all `0` for uncompressed 24-bit) |
+
+> There are larger DIB header variants (BITMAPV4HEADER = 108 bytes, BITMAPV5HEADER = 124 bytes), but BITMAPINFOHEADER is the standard for 24-bit uncompressed BMPs. The `pixel data offset` field at bytes 10–13 tells us exactly where pixel data begins, so our code works regardless of header variant.
+
+This is why `parse_bmp` validates `data.len() < 54` — we need at least those 54 bytes to read all the fields we depend on.
+
+After the headers, pixel data is stored **row by row** in BGR order (not RGB). Each row is padded to a multiple of 4 bytes. For a 5-pixel-wide image, each row occupies `5 × 3 = 15` bytes of color data plus 1 byte of padding = 16 bytes.
 
 ### Parsing the header in Rust
 
