@@ -12,12 +12,8 @@ const { Content } = await render(entry!);
 <Base title="Steganography — Intro to Cryptography" description="Hide secret messages inside BMP images using LSB encoding.">
   <Header />
   <main class="pt-28 pb-24 relative overflow-hidden">
-    <!-- Background blobs -->
-    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
-      <div class="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] rounded-full bg-[#1a1a4e] opacity-40 blur-[150px]"></div>
-      <div class="absolute top-[30%] -right-[15%] w-[500px] h-[500px] rounded-full bg-[#1e1b4b] opacity-30 blur-[140px]"></div>
-      <div class="absolute -bottom-[10%] left-[20%] w-[450px] h-[450px] rounded-full bg-[#172044] opacity-35 blur-[130px]"></div>
-    </div>
+    <!-- Background blobs — generated dynamically to cover full height without shifting -->
+    <div id="blob-container" class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
 
     <div class="relative mx-auto w-full max-w-[1200px] px-8">
 
@@ -239,6 +235,7 @@ const { Content } = await render(entry!);
           t.btn.classList.toggle('active', i === j);
           t.panel.classList.toggle('hidden', i !== j);
         });
+        regenerateBlobs();
       });
     });
 
@@ -362,6 +359,45 @@ const { Content } = await render(entry!);
         downloadBlob(decodedMessage, 'decoded.txt', 'text/plain');
       }
     });
+
+    // --- Dynamic background blobs ---
+    const blobContainer = document.getElementById('blob-container')!;
+    const BLOB_SPACING = 500;
+    const blobPresets = [
+      { color: '#1a1a4e', size: 600, opacity: 0.40, blur: 150, x: 10 },
+      { color: '#1e1b4b', size: 500, opacity: 0.30, blur: 140, x: 75 },
+      { color: '#172044', size: 450, opacity: 0.35, blur: 130, x: 35 },
+    ];
+
+    function regenerateBlobs() {
+      // Wait a frame so the DOM settles after hidden toggle
+      requestAnimationFrame(() => {
+        const mainEl = blobContainer.parentElement!;
+        const totalHeight = mainEl.scrollHeight;
+        const needed = Math.max(2, Math.ceil(totalHeight / BLOB_SPACING));
+
+        blobContainer.innerHTML = '';
+        for (let i = 0; i < needed; i++) {
+          const preset = blobPresets[i % blobPresets.length];
+          const blob = document.createElement('div');
+          blob.style.cssText = `
+            position: absolute;
+            top: ${i * BLOB_SPACING}px;
+            left: ${preset.x}%;
+            width: ${preset.size}px;
+            height: ${preset.size}px;
+            border-radius: 50%;
+            background: ${preset.color};
+            opacity: ${preset.opacity};
+            filter: blur(${preset.blur}px);
+            transform: translateX(-50%);
+          `;
+          blobContainer.appendChild(blob);
+        }
+      });
+    }
+
+    regenerateBlobs();
 
     // --- GSAP fade-in ---
     if (typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
