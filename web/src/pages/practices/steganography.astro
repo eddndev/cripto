@@ -6,8 +6,15 @@ import Footer from '../../components/Footer.astro';
 
 <Base title="Steganography — Intro to Cryptography" description="Hide secret messages inside BMP images using LSB encoding.">
   <Header />
-  <main class="pt-28 pb-24">
-    <div class="mx-auto w-full max-w-[1200px] px-8">
+  <main class="pt-28 pb-24 relative overflow-hidden">
+    <!-- Background blobs -->
+    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+      <div class="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] rounded-full bg-[#1a1a4e] opacity-40 blur-[150px]"></div>
+      <div class="absolute top-[30%] -right-[15%] w-[500px] h-[500px] rounded-full bg-[#1e1b4b] opacity-30 blur-[140px]"></div>
+      <div class="absolute -bottom-[10%] left-[20%] w-[450px] h-[450px] rounded-full bg-[#172044] opacity-35 blur-[130px]"></div>
+    </div>
+
+    <div class="relative mx-auto w-full max-w-[1200px] px-8">
 
       <!-- Breadcrumb + Intro -->
       <div class="stego-intro mb-16">
@@ -24,22 +31,23 @@ import Footer from '../../components/Footer.astro';
 
       <!-- Tabs -->
       <div class="flex gap-0 mb-0">
-        <button id="tab-encode" class="tab-btn active font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-border border-b-0 transition-colors duration-200">
+        <button id="tab-encode" class="tab-btn active font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-[#3a3a42] border-b-0 transition-colors duration-200">
           ENCODE
         </button>
-        <button id="tab-decode" class="tab-btn font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-border border-b-0 transition-colors duration-200">
+        <button id="tab-decode" class="tab-btn font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-[#3a3a42] border-b-0 transition-colors duration-200">
           DECODE
         </button>
       </div>
 
       <!-- Encode Panel -->
-      <div id="panel-encode" class="panel border border-border p-8 max-md:p-5">
+      <div id="panel-encode" class="panel bg-[#13131a]/80 backdrop-blur-sm border border-[#3a3a42] p-8 max-md:p-5">
         <div class="grid grid-cols-2 max-md:grid-cols-1 gap-8">
           <!-- Left: Inputs -->
           <div class="flex flex-col gap-6">
             <div>
-              <label class="block font-mono text-[0.75rem] text-text-secondary uppercase tracking-[0.08em] mb-2">BMP Image</label>
-              <div id="encode-dropzone" class="dropzone flex flex-col items-center justify-center gap-2 border border-dashed border-border p-8 text-center cursor-pointer transition-colors duration-200 hover:border-accent-deep">
+              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">BMP Image</label>
+              <div id="encode-dropzone" class="dropzone flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#3a3a42] bg-[#0c0c12] p-8 text-center cursor-pointer transition-all duration-200 hover:border-accent hover:bg-accent-deep/5">
+                <svg class="w-8 h-8 text-[#4a4a55]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
                 <span class="font-mono text-[0.8rem] text-text-secondary">Drop a 24-bit BMP here or click to browse</span>
                 <span id="encode-file-info" class="font-mono text-[0.7rem] text-accent hidden"></span>
                 <input id="encode-file-input" type="file" accept=".bmp" class="hidden" />
@@ -47,14 +55,14 @@ import Footer from '../../components/Footer.astro';
             </div>
             <div>
               <div class="flex items-center justify-between mb-2">
-                <label class="font-mono text-[0.75rem] text-text-secondary uppercase tracking-[0.08em]">Secret Message</label>
+                <label class="font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em]">Secret Message</label>
                 <span id="encode-counter" class="font-mono text-[0.7rem] text-text-secondary">0 / — bytes</span>
               </div>
               <textarea
                 id="encode-message"
                 rows="6"
                 placeholder="Type your secret message here..."
-                class="w-full bg-bg-primary border border-border p-4 font-mono text-[0.85rem] text-text-primary resize-y focus:outline-none focus:border-accent-deep transition-colors duration-200 placeholder:text-text-secondary/40"
+                class="w-full bg-[#0c0c12] border border-[#3a3a42] p-4 font-mono text-[0.85rem] text-text-primary resize-y focus:outline-none focus:border-accent transition-colors duration-200 placeholder:text-text-secondary/50"
               ></textarea>
             </div>
             <button id="encode-btn" disabled class="font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-accent-deep text-white border-none cursor-pointer transition-all duration-200 hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed">
@@ -63,12 +71,16 @@ import Footer from '../../components/Footer.astro';
           </div>
 
           <!-- Right: Result -->
-          <div class="flex flex-col gap-4">
-            <label class="font-mono text-[0.75rem] text-text-secondary uppercase tracking-[0.08em]">Result</label>
-            <div id="encode-result" class="flex-1 flex items-center justify-center border border-border p-8 min-h-[200px]">
-              <span class="font-mono text-[0.8rem] text-text-secondary/40">Encoded image will appear here</span>
+          <div class="flex flex-col gap-6">
+            <div class="flex-1 flex flex-col">
+              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Result</label>
+              <div id="encode-result" class="flex-1 flex flex-col items-center justify-center gap-4 border border-[#3a3a42] bg-[#0c0c12] p-6 min-h-[200px]">
+                <span id="encode-placeholder" class="font-mono text-[0.8rem] text-text-secondary/60">Encoded image will appear here</span>
+                <img id="encode-preview" class="hidden max-w-full max-h-[280px] object-contain" alt="Encoded BMP preview" />
+                <span id="encode-status" class="hidden font-mono text-[0.8rem] text-accent"></span>
+              </div>
             </div>
-            <button id="encode-download" class="hidden font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-bg-card border border-border text-text-primary cursor-pointer transition-all duration-200 hover:border-accent-deep hover:text-accent">
+            <button id="encode-download" class="hidden font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-[#1c1c24] border border-[#3a3a42] text-text-primary cursor-pointer transition-all duration-200 hover:border-accent hover:text-accent">
               DOWNLOAD ENCODED BMP
             </button>
           </div>
@@ -76,13 +88,14 @@ import Footer from '../../components/Footer.astro';
       </div>
 
       <!-- Decode Panel -->
-      <div id="panel-decode" class="panel border border-border p-8 max-md:p-5 hidden">
+      <div id="panel-decode" class="panel bg-[#13131a]/80 backdrop-blur-sm border border-[#3a3a42] p-8 max-md:p-5 hidden">
         <div class="grid grid-cols-2 max-md:grid-cols-1 gap-8">
           <!-- Left: Input -->
           <div class="flex flex-col gap-6">
             <div>
-              <label class="block font-mono text-[0.75rem] text-text-secondary uppercase tracking-[0.08em] mb-2">Encoded BMP Image</label>
-              <div id="decode-dropzone" class="dropzone flex flex-col items-center justify-center gap-2 border border-dashed border-border p-8 text-center cursor-pointer transition-colors duration-200 hover:border-accent-deep">
+              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Encoded BMP Image</label>
+              <div id="decode-dropzone" class="dropzone flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#3a3a42] bg-[#0c0c12] p-8 text-center cursor-pointer transition-all duration-200 hover:border-accent hover:bg-accent-deep/5">
+                <svg class="w-8 h-8 text-[#4a4a55]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
                 <span class="font-mono text-[0.8rem] text-text-secondary">Drop an encoded BMP here or click to browse</span>
                 <span id="decode-file-info" class="font-mono text-[0.7rem] text-accent hidden"></span>
                 <input id="decode-file-input" type="file" accept=".bmp" class="hidden" />
@@ -94,10 +107,21 @@ import Footer from '../../components/Footer.astro';
           </div>
 
           <!-- Right: Result -->
-          <div class="flex flex-col gap-4">
-            <label class="font-mono text-[0.75rem] text-text-secondary uppercase tracking-[0.08em]">Extracted Message</label>
-            <pre id="decode-result" class="flex-1 border border-border p-6 font-mono text-[0.85rem] text-text-primary whitespace-pre-wrap break-words min-h-[200px] overflow-auto bg-bg-primary"><span class="text-text-secondary/40">Hidden message will appear here</span></pre>
-            <button id="decode-download" class="hidden font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-bg-card border border-border text-text-primary cursor-pointer transition-all duration-200 hover:border-accent-deep hover:text-accent">
+          <div class="flex flex-col gap-6">
+            <div class="flex-1 flex flex-col gap-4">
+              <div>
+                <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Image Preview</label>
+                <div id="decode-preview-wrap" class="flex items-center justify-center border border-[#3a3a42] bg-[#0c0c12] p-6 min-h-[120px]">
+                  <span id="decode-preview-placeholder" class="font-mono text-[0.8rem] text-text-secondary/60">Upload an image to preview</span>
+                  <img id="decode-preview" class="hidden max-w-full max-h-[200px] object-contain" alt="Uploaded BMP preview" />
+                </div>
+              </div>
+              <div class="flex-1 flex flex-col">
+                <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Extracted Message</label>
+                <pre id="decode-result" class="flex-1 border border-[#3a3a42] bg-[#0c0c12] p-6 font-mono text-[0.85rem] text-text-primary whitespace-pre-wrap break-words min-h-[100px] overflow-auto"><span class="text-text-secondary/60">Hidden message will appear here</span></pre>
+              </div>
+            </div>
+            <button id="decode-download" class="hidden font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-[#1c1c24] border border-[#3a3a42] text-text-primary cursor-pointer transition-all duration-200 hover:border-accent hover:text-accent">
               DOWNLOAD AS TXT
             </button>
           </div>
@@ -111,8 +135,13 @@ import Footer from '../../components/Footer.astro';
 
 <style>
   .tab-btn {
-    background: var(--color-bg-card);
-    color: var(--color-text-secondary);
+    background: #18181f;
+    color: #7a7a85;
+  }
+
+  .tab-btn:hover:not(.active) {
+    color: var(--color-text-primary);
+    background: #22222a;
   }
 
   .tab-btn.active {
@@ -121,8 +150,8 @@ import Footer from '../../components/Footer.astro';
   }
 
   .dropzone.dragover {
-    border-color: var(--color-accent);
-    background: var(--color-bg-card-hover);
+    border-color: var(--color-accent) !important;
+    background: color-mix(in srgb, var(--color-accent-deep) 10%, transparent);
   }
 </style>
 
@@ -151,6 +180,10 @@ import Footer from '../../components/Footer.astro';
       URL.revokeObjectURL(url);
     }
 
+    function bmpToObjectURL(data: Uint8Array): string {
+      return URL.createObjectURL(new Blob([data], { type: 'image/bmp' }));
+    }
+
     // --- DOM refs ---
     const tabEncode = document.getElementById('tab-encode')!;
     const tabDecode = document.getElementById('tab-decode')!;
@@ -163,13 +196,17 @@ import Footer from '../../components/Footer.astro';
     const encodeMessage = document.getElementById('encode-message') as HTMLTextAreaElement;
     const encodeCounter = document.getElementById('encode-counter')!;
     const encodeBtn = document.getElementById('encode-btn') as HTMLButtonElement;
-    const encodeResult = document.getElementById('encode-result')!;
+    const encodePlaceholder = document.getElementById('encode-placeholder')!;
+    const encodePreview = document.getElementById('encode-preview') as HTMLImageElement;
+    const encodeStatus = document.getElementById('encode-status')!;
     const encodeDownload = document.getElementById('encode-download') as HTMLButtonElement;
 
     const decodeDropzone = document.getElementById('decode-dropzone')!;
     const decodeFileInput = document.getElementById('decode-file-input') as HTMLInputElement;
     const decodeFileInfo = document.getElementById('decode-file-info')!;
     const decodeBtn = document.getElementById('decode-btn') as HTMLButtonElement;
+    const decodePreviewPlaceholder = document.getElementById('decode-preview-placeholder')!;
+    const decodePreview = document.getElementById('decode-preview') as HTMLImageElement;
     const decodeResult = document.getElementById('decode-result')!;
     const decodeDownload = document.getElementById('decode-download') as HTMLButtonElement;
 
@@ -252,10 +289,18 @@ import Footer from '../../components/Footer.astro';
       try {
         const msgBytes = new TextEncoder().encode(encodeMessage.value);
         encodedBmpData = wasm.encode(encodeBmpData, msgBytes);
-        encodeResult.innerHTML = `<span class="font-mono text-[0.85rem] text-accent">Message encoded successfully into ${encodedBmpData!.length.toLocaleString()} bytes</span>`;
+        encodePlaceholder.classList.add('hidden');
+        encodePreview.src = bmpToObjectURL(encodedBmpData);
+        encodePreview.classList.remove('hidden');
+        encodeStatus.textContent = `Encoded — ${encodedBmpData.length.toLocaleString()} bytes`;
+        encodeStatus.classList.remove('hidden');
         encodeDownload.classList.remove('hidden');
       } catch (e: any) {
-        encodeResult.innerHTML = `<span class="font-mono text-[0.85rem] text-red-400">Error: ${e.message || e}</span>`;
+        encodePlaceholder.classList.add('hidden');
+        encodePreview.classList.add('hidden');
+        encodeStatus.textContent = `Error: ${e.message || e}`;
+        encodeStatus.className = 'font-mono text-[0.8rem] text-red-400';
+        encodeStatus.classList.remove('hidden');
         encodeDownload.classList.add('hidden');
       }
     });
@@ -270,14 +315,18 @@ import Footer from '../../components/Footer.astro';
     setupDropzone(decodeDropzone, decodeFileInput, async (file) => {
       try {
         decodeBmpData = await readFileAsUint8Array(file);
-        // Validate it's a BMP by checking capacity
         wasm.capacity(decodeBmpData);
         decodeFileInfo.textContent = file.name;
         decodeFileInfo.classList.remove('hidden');
+        decodePreviewPlaceholder.classList.add('hidden');
+        decodePreview.src = bmpToObjectURL(decodeBmpData);
+        decodePreview.classList.remove('hidden');
         decodeBtn.disabled = false;
       } catch (e: any) {
         decodeFileInfo.textContent = `Error: ${e.message || e}`;
         decodeFileInfo.classList.remove('hidden');
+        decodePreview.classList.add('hidden');
+        decodePreviewPlaceholder.classList.remove('hidden');
         decodeBmpData = null;
         decodeBtn.disabled = true;
       }

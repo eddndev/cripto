@@ -2,15 +2,15 @@
 
 /* ── Theme ────────────────────────────────────────────── */
 @theme {
-  --color-bg-primary: #0a0a0a;
-  --color-bg-card: #111111;
-  --color-bg-card-hover: #161616;
+  --color-bg-primary: #09090b;
+  --color-bg-card: #151518;
+  --color-bg-card-hover: #1c1c21;
   --color-accent: #a78bfa;
   --color-accent-hover: #c4b5fd;
   --color-accent-deep: #7c3aed;
   --color-text-primary: #f0f0f0;
-  --color-text-secondary: #737373;
-  --color-border: #1e1e1e;
+  --color-text-secondary: #888891;
+  --color-border: #27272a;
   --font-ui: 'Space Grotesk', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
