@@ -1,46 +1,45 @@
 ---
-import Base from '../../layouts/Base.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
 import { render } from 'astro:content';
 import { getEntry } from 'astro:content';
 
-const entry = await getEntry('practices', 'steganography');
+const entry = await getEntry('practices', 'steganography-es');
 const { Content } = await render(entry!);
 const authors = entry!.data.authors ?? [];
 ---
 
-<Base title="Steganography — Intro to Cryptography" description="Hide secret messages inside BMP images using LSB encoding.">
+<Base title="Esteganografía — Intro a la Criptografía" description="Oculta mensajes secretos dentro de imágenes BMP usando codificación LSB.">
   <Header />
   <main class="pt-28 pb-24 relative overflow-hidden">
-    <!-- Background blobs — generated dynamically to cover full height without shifting -->
     <div id="blob-container" class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
 
     <div class="relative mx-auto w-full max-w-[1200px] px-8">
 
       <!-- Breadcrumb + Intro -->
       <div class="stego-intro mb-16">
-        <a href="/#practices" class="inline-flex items-center gap-2 font-mono text-[0.8rem] text-text-secondary hover:text-accent transition-colors duration-200 mb-8">
-          <span>←</span> Back to practices
+        <a href="/es/#practices" class="inline-flex items-center gap-2 font-mono text-[0.8rem] text-text-secondary hover:text-accent transition-colors duration-200 mb-8">
+          <span>←</span> Volver a prácticas
         </a>
-        <span class="block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">Practice 00</span>
-        <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-extrabold tracking-[-0.02em] uppercase mb-4">STEGANOGRAPHY</h1>
+        <span class="block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">Práctica 01</span>
+        <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-extrabold tracking-[-0.02em] uppercase mb-4">ESTEGANOGRAFÍA</h1>
         <p class="text-text-secondary text-[1.05rem] leading-relaxed max-w-[640px]">
-          Hide secret messages inside BMP images using Least Significant Bit encoding.
-          Each bit of your message replaces the lowest bit of a color channel — invisible to the eye, but recoverable with the right algorithm.
+          Oculta mensajes secretos dentro de imágenes BMP usando codificación del Bit Menos Significativo.
+          Cada bit de tu mensaje reemplaza el bit más bajo de un canal de color — invisible al ojo, pero recuperable con el algoritmo adecuado.
         </p>
       </div>
 
       <!-- Tabs -->
       <div class="flex gap-0 mb-0">
         <button id="tab-encode" class="tab-btn active font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-[#3a3a42] border-b-0 transition-colors duration-200">
-          ENCODE
+          CODIFICAR
         </button>
         <button id="tab-decode" class="tab-btn font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-[#3a3a42] border-b-0 transition-colors duration-200">
-          DECODE
+          DECODIFICAR
         </button>
         <button id="tab-writeup" class="tab-btn font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-[#3a3a42] border-b-0 transition-colors duration-200">
-          WRITEUP
+          DESARROLLO
         </button>
       </div>
 
@@ -50,43 +49,43 @@ const authors = entry!.data.authors ?? [];
           <!-- Left: Inputs -->
           <div class="flex flex-col gap-6">
             <div>
-              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">BMP Image</label>
+              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Imagen BMP</label>
               <div id="encode-dropzone" class="dropzone flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#3a3a42] bg-[#0c0c12] p-8 text-center cursor-pointer transition-all duration-200 hover:border-accent hover:bg-accent-deep/5">
                 <svg class="w-8 h-8 text-[#4a4a55]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
-                <span class="font-mono text-[0.8rem] text-text-secondary">Drop a 24-bit BMP here or click to browse</span>
+                <span class="font-mono text-[0.8rem] text-text-secondary">Arrastra un BMP de 24 bits aquí o haz clic para buscar</span>
                 <span id="encode-file-info" class="font-mono text-[0.7rem] text-accent hidden"></span>
                 <input id="encode-file-input" type="file" accept=".bmp" class="hidden" />
               </div>
             </div>
             <div>
               <div class="flex items-center justify-between mb-2">
-                <label class="font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em]">Secret Message</label>
+                <label class="font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em]">Mensaje secreto</label>
                 <span id="encode-counter" class="font-mono text-[0.7rem] text-text-secondary">0 / — bytes</span>
               </div>
               <textarea
                 id="encode-message"
                 rows="6"
-                placeholder="Type your secret message here..."
+                placeholder="Escribe tu mensaje secreto aquí..."
                 class="w-full bg-[#0c0c12] border border-[#3a3a42] p-4 font-mono text-[0.85rem] text-text-primary resize-y focus:outline-none focus:border-accent transition-colors duration-200 placeholder:text-text-secondary/50"
               ></textarea>
             </div>
             <button id="encode-btn" disabled class="font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-accent-deep text-white border-none cursor-pointer transition-all duration-200 hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed">
-              ENCODE
+              CODIFICAR
             </button>
           </div>
 
           <!-- Right: Result -->
           <div class="flex flex-col gap-6">
             <div class="flex-1 flex flex-col">
-              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Result</label>
+              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Resultado</label>
               <div id="encode-result" class="flex-1 flex flex-col items-center justify-center gap-4 border border-[#3a3a42] bg-[#0c0c12] p-6 min-h-[200px]">
-                <span id="encode-placeholder" class="font-mono text-[0.8rem] text-text-secondary/60">Encoded image will appear here</span>
-                <img id="encode-preview" class="hidden max-w-full max-h-[280px] object-contain" alt="Encoded BMP preview" />
+                <span id="encode-placeholder" class="font-mono text-[0.8rem] text-text-secondary/60">La imagen codificada aparecerá aquí</span>
+                <img id="encode-preview" class="hidden max-w-full max-h-[280px] object-contain" alt="Vista previa del BMP codificado" />
                 <span id="encode-status" class="hidden font-mono text-[0.8rem] text-accent"></span>
               </div>
             </div>
             <button id="encode-download" class="hidden font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-[#1c1c24] border border-[#3a3a42] text-text-primary cursor-pointer transition-all duration-200 hover:border-accent hover:text-accent">
-              DOWNLOAD ENCODED BMP
+              DESCARGAR BMP CODIFICADO
             </button>
           </div>
         </div>
@@ -98,16 +97,16 @@ const authors = entry!.data.authors ?? [];
           <!-- Left: Input -->
           <div class="flex flex-col gap-6">
             <div>
-              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Encoded BMP Image</label>
+              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Imagen BMP codificada</label>
               <div id="decode-dropzone" class="dropzone flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#3a3a42] bg-[#0c0c12] p-8 text-center cursor-pointer transition-all duration-200 hover:border-accent hover:bg-accent-deep/5">
                 <svg class="w-8 h-8 text-[#4a4a55]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
-                <span class="font-mono text-[0.8rem] text-text-secondary">Drop an encoded BMP here or click to browse</span>
+                <span class="font-mono text-[0.8rem] text-text-secondary">Arrastra un BMP codificado aquí o haz clic para buscar</span>
                 <span id="decode-file-info" class="font-mono text-[0.7rem] text-accent hidden"></span>
                 <input id="decode-file-input" type="file" accept=".bmp" class="hidden" />
               </div>
             </div>
             <button id="decode-btn" disabled class="font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-accent-deep text-white border-none cursor-pointer transition-all duration-200 hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed">
-              DECODE
+              DECODIFICAR
             </button>
           </div>
 
@@ -115,19 +114,19 @@ const authors = entry!.data.authors ?? [];
           <div class="flex flex-col gap-6">
             <div class="flex-1 flex flex-col gap-4">
               <div>
-                <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Image Preview</label>
+                <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Vista previa de imagen</label>
                 <div id="decode-preview-wrap" class="flex items-center justify-center border border-[#3a3a42] bg-[#0c0c12] p-6 min-h-[120px]">
-                  <span id="decode-preview-placeholder" class="font-mono text-[0.8rem] text-text-secondary/60">Upload an image to preview</span>
-                  <img id="decode-preview" class="hidden max-w-full max-h-[200px] object-contain" alt="Uploaded BMP preview" />
+                  <span id="decode-preview-placeholder" class="font-mono text-[0.8rem] text-text-secondary/60">Sube una imagen para previsualizar</span>
+                  <img id="decode-preview" class="hidden max-w-full max-h-[200px] object-contain" alt="Vista previa del BMP subido" />
                 </div>
               </div>
               <div class="flex-1 flex flex-col">
-                <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Extracted Message</label>
-                <pre id="decode-result" class="flex-1 border border-[#3a3a42] bg-[#0c0c12] p-6 font-mono text-[0.85rem] text-text-primary whitespace-pre-wrap break-words min-h-[100px] overflow-auto"><span class="text-text-secondary/60">Hidden message will appear here</span></pre>
+                <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Mensaje extraído</label>
+                <pre id="decode-result" class="flex-1 border border-[#3a3a42] bg-[#0c0c12] p-6 font-mono text-[0.85rem] text-text-primary whitespace-pre-wrap break-words min-h-[100px] overflow-auto"><span class="text-text-secondary/60">El mensaje oculto aparecerá aquí</span></pre>
               </div>
             </div>
             <button id="decode-download" class="hidden font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-[#1c1c24] border border-[#3a3a42] text-text-primary cursor-pointer transition-all duration-200 hover:border-accent hover:text-accent">
-              DOWNLOAD AS TXT
+              DESCARGAR COMO TXT
             </button>
           </div>
         </div>
@@ -137,7 +136,7 @@ const authors = entry!.data.authors ?? [];
       <div id="panel-writeup" class="panel bg-[#13131a]/80 backdrop-blur-sm border border-[#3a3a42] p-8 max-md:p-5 hidden">
         {authors.length > 0 && (
           <div class="mb-6 pb-4 border-b border-[#3a3a42]">
-            <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Authors</span>
+            <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Autores</span>
             <ul class="flex flex-wrap gap-2 list-none m-0 p-0">
               {authors.map((name: string) => (
                 <li class="font-mono text-[0.8rem] text-text-secondary border border-[#3a3a42] px-3 py-1 bg-[#0c0c12]">{name}</li>
@@ -152,7 +151,7 @@ const authors = entry!.data.authors ?? [];
 
     </div>
   </main>
-  <Footer />
+  <Footer lang="es" />
 </Base>
 
 <style>
@@ -179,7 +178,7 @@ const authors = entry!.data.authors ?? [];
 
 <script>
   async function init() {
-    const wasm = await import('../../wasm/stego/stego.js');
+    const wasm = await import('../../../wasm/stego/stego.js');
     await wasm.default();
 
     // --- Helpers ---
@@ -287,7 +286,7 @@ const authors = entry!.data.authors ?? [];
       try {
         encodeBmpData = await readFileAsUint8Array(file);
         bmpCapacity = wasm.capacity(encodeBmpData);
-        encodeFileInfo.textContent = `${file.name} — capacity: ${bmpCapacity} bytes`;
+        encodeFileInfo.textContent = `${file.name} — capacidad: ${bmpCapacity} bytes`;
         encodeFileInfo.classList.remove('hidden');
         updateEncodeState();
       } catch (e: any) {
@@ -310,7 +309,7 @@ const authors = entry!.data.authors ?? [];
         encodePlaceholder.classList.add('hidden');
         encodePreview.src = bmpToObjectURL(encodedBmpData);
         encodePreview.classList.remove('hidden');
-        encodeStatus.textContent = `Encoded — ${encodedBmpData.length.toLocaleString()} bytes`;
+        encodeStatus.textContent = `Codificado — ${encodedBmpData.length.toLocaleString()} bytes`;
         encodeStatus.classList.remove('hidden');
         encodeDownload.classList.remove('hidden');
       } catch (e: any) {
@@ -325,7 +324,7 @@ const authors = entry!.data.authors ?? [];
 
     encodeDownload.addEventListener('click', () => {
       if (encodedBmpData) {
-        downloadBlob(encodedBmpData, 'encoded.bmp', 'image/bmp');
+        downloadBlob(encodedBmpData, 'codificado.bmp', 'image/bmp');
       }
     });
 
@@ -367,7 +366,7 @@ const authors = entry!.data.authors ?? [];
 
     decodeDownload.addEventListener('click', () => {
       if (decodedMessage) {
-        downloadBlob(decodedMessage, 'decoded.txt', 'text/plain');
+        downloadBlob(decodedMessage, 'decodificado.txt', 'text/plain');
       }
     });
 
@@ -381,7 +380,6 @@ const authors = entry!.data.authors ?? [];
     ];
 
     function regenerateBlobs() {
-      // Wait a frame so the DOM settles after hidden toggle
       requestAnimationFrame(() => {
         const mainEl = blobContainer.parentElement!;
         const totalHeight = mainEl.scrollHeight;

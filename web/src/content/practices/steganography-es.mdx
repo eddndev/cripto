@@ -1,0 +1,245 @@
+---
+title: "Esteganografía"
+description: "Esteganografía LSB en imágenes BMP de 24 bits"
+tags: ["LSB", "imágenes", "codificación"]
+order: 1
+draft: false
+lang: es
+authors:
+  - "Alonso Sánchez Eduardo"
+  - "Ramírez Lozano Gael Martin"
+  - "Zaragoza Guerrero Gustavo"
+---
+
+## ¿Qué es la esteganografía?
+
+La esteganografía es la práctica de ocultar información dentro de otro medio para que su propia existencia pase desapercibida. A diferencia del cifrado — que transforma un mensaje en texto ilegible — la esteganografía oculta el mensaje a plena vista.
+
+En esta práctica usamos **codificación del Bit Menos Significativo (LSB)** para incrustar bytes arbitrarios dentro de los datos de píxeles de una imagen BMP de 24 bits. Cada canal de color (Azul, Verde, Rojo) almacena 8 bits, pero el bit más bajo contribuye tan poco al color visible que cambiarlo es imperceptible para el ojo humano.
+
+---
+
+## El formato BMP
+
+Un archivo BMP de 24 bits tiene una estructura simple y sin comprimir, compuesta por dos cabeceras seguidas de datos de píxeles. El tamaño mínimo de la cabecera es de **54 bytes** — la suma de la cabecera de archivo BMP (14 bytes) y la cabecera DIB BITMAPINFOHEADER (40 bytes).
+
+**Cabecera de archivo BMP** (14 bytes):
+
+| Offset | Tamaño | Campo |
+|--------|--------|-------|
+| 0–1 | 2 B | Firma `"BM"` |
+| 2–5 | 4 B | Tamaño del archivo |
+| 6–9 | 4 B | Reservado (sin uso) |
+| 10–13 | 4 B | Offset de datos de píxeles |
+
+**Cabecera DIB — BITMAPINFOHEADER** (40 bytes):
+
+| Offset | Tamaño | Campo |
+|--------|--------|-------|
+| 14–17 | 4 B | Tamaño de cabecera DIB (`40`) |
+| 18–21 | 4 B | Ancho (píxeles) |
+| 22–25 | 4 B | Alto (con signo, negativo = de arriba hacia abajo) |
+| 26–27 | 2 B | Planos de color (`1`) |
+| 28–29 | 2 B | Bits por píxel (`24`) |
+| 30–53 | 24 B | Compresión, tamaño de imagen, resolución, colores (todo `0` para BMP de 24 bits sin comprimir) |
+
+> Existen variantes de cabecera DIB más grandes (BITMAPV4HEADER = 108 bytes, BITMAPV5HEADER = 124 bytes), pero BITMAPINFOHEADER es el estándar para BMPs de 24 bits sin comprimir. El campo `offset de datos de píxeles` en los bytes 10–13 indica exactamente dónde comienzan los datos de píxeles, por lo que nuestro código funciona independientemente de la variante de cabecera.
+
+Por eso `parse_bmp` valida `data.len() < 54` — necesitamos al menos esos 54 bytes para leer todos los campos de los que dependemos.
+
+Después de las cabeceras, los datos de píxeles se almacenan **fila por fila** en orden BGR (no RGB). Cada fila se rellena hasta un múltiplo de 4 bytes. Para una imagen de 5 píxeles de ancho, cada fila ocupa `5 × 3 = 15` bytes de datos de color más 1 byte de relleno = 16 bytes.
+
+### Parsing de la cabecera en Rust
+
+```rust
+fn parse_bmp(data: &[u8]) -> Result<BmpInfo, String> {
+    if data.len() < 54 {
+        return Err("File too small to be a valid BMP".into());
+    }
+    if data[0] != b'B' || data[1] != b'M' {
+        return Err("Not a BMP file (missing BM signature)".into());
+    }
+
+    let pixel_offset = u32::from_le_bytes([data[10], data[11], data[12], data[13]]) as usize;
+    let width = u32::from_le_bytes([data[18], data[19], data[20], data[21]]);
+    let height_raw = i32::from_le_bytes([data[22], data[23], data[24], data[25]]);
+    let height = height_raw.unsigned_abs();
+    let bpp = u16::from_le_bytes([data[28], data[29]]);
+
+    if bpp != 24 {
+        return Err(format!("Only 24-bit BMP supported, got {bpp}-bit"));
+    }
+
+    Ok(BmpInfo { pixel_offset, width, height })
+}
+```
+
+### Omitiendo el relleno de filas
+
+No todos los bytes después de la cabecera son utilizables. Los bytes de relleno al final de cada fila deben omitirse — escribir en ellos corrompería la estructura del archivo.
+
+```rust
+fn usable_byte_indices(pixel_offset: usize, width: u32, height: u32) -> Vec<usize> {
+    let row_data = width as usize * 3;
+    let row_stride = (row_data + 3) & !3; // alinear a 4 bytes
+    let mut indices = Vec::with_capacity(row_data * height as usize);
+
+    for row in 0..height as usize {
+        let row_start = pixel_offset + row * row_stride;
+        for col in 0..row_data {
+            indices.push(row_start + col);
+        }
+    }
+    indices
+}
+```
+
+La expresión `(row_data + 3) & !3` redondea hacia arriba al múltiplo de 4 más cercano. Solo se devuelven los índices dentro de los tripletes BGR reales.
+
+---
+
+## El algoritmo de codificación
+
+### Disposición binaria en los LSBs
+
+Cada mensaje se antepone con una cabecera de 10 bytes:
+
+```
+[3 bytes sal] [3 bytes verificación] [4 bytes longitud] [N bytes mensaje]
+```
+
+- **Sal**: 3 bytes criptográficamente aleatorios
+- **Verificación**: `sal[i] XOR 'E','D','D'` — verificación sin un patrón estático
+- **Longitud**: tamaño del mensaje como `u32` en big-endian
+
+Al decodificar, verificamos que `sal ^ verificación == "EDD"`. Si no coincide, la imagen no contiene un mensaje oculto. La sal asegura que los bits de la cabecera sean diferentes cada vez, haciendo la codificación más difícil de detectar al comparar patrones LSB.
+
+### Incrustación de bits
+
+Cada byte se incrusta **MSB primero** en el bit más bajo de bytes consecutivos de canales de color:
+
+```rust
+fn write_lsb_bytes(data: &mut [u8], indices: &[usize], start_bit: usize, bytes: &[u8]) {
+    let mut bit_idx = start_bit;
+    for byte in bytes {
+        for bit_pos in (0..8).rev() {
+            let bit = (byte >> bit_pos) & 1;
+            let i = indices[bit_idx];
+            data[i] = (data[i] & 0xFE) | bit;
+            bit_idx += 1;
+        }
+    }
+}
+```
+
+`& 0xFE` limpia el LSB, luego `| bit` lo establece al valor deseado. La imagen cambia como máximo 1 unidad por canal — invisible al ojo.
+
+### La función de codificación
+
+```rust
+pub fn encode(bmp_data: &[u8], message: &[u8]) -> Result<Vec<u8>, String> {
+    let info = parse_bmp(bmp_data)?;
+    let indices = usable_byte_indices(info.pixel_offset, info.width, info.height);
+
+    let total_bits = (HEADER_SIZE + message.len()) * 8;
+    if total_bits > indices.len() {
+        let available = indices.len() / 8;
+        let available = available.saturating_sub(HEADER_SIZE);
+        return Err(format!(
+            "Message too large: need {} bytes but only {} available",
+            message.len(), available
+        ));
+    }
+
+    // Construir cabecera: [3 sal] [3 verificación] [4 longitud BE]
+    let mut salt = [0u8; 3];
+    getrandom::getrandom(&mut salt).map_err(|e| format!("RNG error: {e}"))?;
+    let check = [
+        salt[0] ^ MAGIC[0],
+        salt[1] ^ MAGIC[1],
+        salt[2] ^ MAGIC[2],
+    ];
+    let len_bytes = (message.len() as u32).to_be_bytes();
+
+    let mut header = [0u8; HEADER_SIZE];
+    header[0..3].copy_from_slice(&salt);
+    header[3..6].copy_from_slice(&check);
+    header[6..10].copy_from_slice(&len_bytes);
+
+    let mut data = bmp_data.to_vec();
+    write_lsb_bytes(&mut data, &indices, 0, &header);
+    write_lsb_bytes(&mut data, &indices, HEADER_SIZE * 8, message);
+
+    Ok(data)
+}
+```
+
+---
+
+## Decodificación
+
+La decodificación invierte el proceso: leer la cabecera, verificar el magic, extraer la longitud y luego leer esa cantidad de bytes.
+
+```rust
+pub fn decode(bmp_data: &[u8]) -> Result<Vec<u8>, String> {
+    let info = parse_bmp(bmp_data)?;
+    let indices = usable_byte_indices(info.pixel_offset, info.width, info.height);
+
+    if indices.len() < HEADER_SIZE * 8 {
+        return Err("Image too small to contain a hidden message".into());
+    }
+
+    // Verificar magic: sal ^ verificación debe ser igual a "EDD"
+    let header = read_lsb_bytes(bmp_data, &indices, 0, 6);
+    let salt = &header[0..3];
+    let check = &header[3..6];
+
+    if salt[0] ^ check[0] != MAGIC[0]
+        || salt[1] ^ check[1] != MAGIC[1]
+        || salt[2] ^ check[2] != MAGIC[2]
+    {
+        return Err("No hidden message found in this image".into());
+    }
+
+    // Leer longitud y extraer mensaje
+    let len_bytes = read_lsb_bytes(bmp_data, &indices, 48, 4);
+    let msg_len = u32::from_be_bytes([len_bytes[0], len_bytes[1], len_bytes[2], len_bytes[3]]) as usize;
+
+    let message = read_lsb_bytes(bmp_data, &indices, HEADER_SIZE * 8, msg_len);
+    Ok(message)
+}
+```
+
+---
+
+## Capacidad
+
+El número máximo de bytes que se pueden ocultar en una imagen:
+
+```
+capacidad = (ancho × 3 × alto) / 8 − 10
+```
+
+Cada byte de píxel utilizable contribuye con 1 bit. Dividimos el total de bytes utilizables entre 8 para obtener el número de bytes de mensaje, luego restamos la cabecera de 10 bytes (6 magic + 4 longitud).
+
+```rust
+pub fn capacity(bmp_data: &[u8]) -> Result<u32, String> {
+    let info = parse_bmp(bmp_data)?;
+    let total_usable = (info.width as usize * 3 * info.height as usize) / 8;
+    Ok(total_usable.saturating_sub(HEADER_SIZE) as u32)
+}
+```
+
+Para una imagen de 200×200: `(200 × 3 × 200) / 8 − 10 = 14,990 bytes` — suficiente para ocultar aproximadamente 15 KB de texto.
+
+---
+
+## De Rust al navegador
+
+El crate se compila a WebAssembly con `wasm-pack`:
+
+```bash
+wasm-pack build crates/stego --target web --out-dir ../../web/src/wasm/stego
+```
+
+Esto produce un binario `.wasm` y un módulo JavaScript de enlace que expone `encode`, `decode` y `capacity` como funciones async normales. El navegador carga el módulo WASM, y toda la codificación y decodificación se ejecuta **completamente en el lado del cliente** — ningún archivo sale jamás de la máquina del usuario.

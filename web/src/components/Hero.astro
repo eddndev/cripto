@@ -1,26 +1,48 @@
 ---
 import HeroDecorations from './HeroDecorations.astro';
+
+interface Props { lang?: 'en' | 'es'; }
+const { lang = 'en' } = Astro.props;
+
+const t = lang === 'es' ? {
+  label: 'Criptografía práctica',
+  line1: 'CIFRA.', line2: 'OCULTA.',
+  desc1: 'Una introducción práctica a la criptografía.',
+  desc2: 'Implementada en',
+  desc3: ', compilada a',
+  desc4: ', ejecutándose completamente en tu navegador.',
+  cta: 'Explorar prácticas',
+  github: 'Ver en GitHub →',
+} : {
+  label: 'Hands-on cryptography',
+  line1: 'ENCRYPT.', line2: 'HIDE.',
+  desc1: 'A practical introduction to cryptography.',
+  desc2: 'Implemented in',
+  desc3: ', compiled to',
+  desc4: ', running entirely in your browser.',
+  cta: 'Explore Practices',
+  github: 'View on GitHub →',
+};
 ---
 
 <section class="hero relative py-32 pb-20 min-h-screen flex items-center">
   <HeroDecorations />
   <div class="dot-grid" aria-hidden="true"></div>
   <div class="hero__inner relative z-1 w-full mx-auto max-w-[1200px] px-8">
-    <span class="hero__label inline-block font-mono text-[0.8rem] font-medium text-accent uppercase tracking-[0.1em] mb-6">Hands-on cryptography</span>
+    <span class="hero__label inline-block font-mono text-[0.8rem] font-medium text-accent uppercase tracking-[0.1em] mb-6">{t.label}</span>
     <h1 class="text-[clamp(4rem,11vw,9rem)] font-black leading-[0.92] tracking-[-0.04em]">
-      <span class="hero__title-line block">ENCRYPT.</span>
-      <span class="hero__title-line block text-accent">HIDE.</span>
+      <span class="hero__title-line block">{t.line1}</span>
+      <span class="hero__title-line block text-accent">{t.line2}</span>
     </h1>
     <div class="hero__separator w-full h-px bg-border my-12"></div>
     <div class="hero__bottom flex items-end justify-between gap-12 max-md:flex-col max-md:items-start">
       <p class="max-w-[480px] text-[#a3a3a3] text-[1.05rem] leading-[1.7] [&_strong]:text-text-primary [&_strong]:font-semibold">
-        A practical introduction to cryptography.
-        Implemented in <strong>Rust</strong>, compiled to <strong>WebAssembly</strong>,
-        running entirely in your browser.
+        {t.desc1}
+        {t.desc2} <strong>Rust</strong>{t.desc3} <strong>WebAssembly</strong>{t.desc4}
       </p>
       <div class="flex gap-4 shrink-0 max-md:flex-col max-md:w-full">
-        <a href="#practices" class="hero__cta--solid inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-all duration-200 bg-text-primary text-bg-primary hover:bg-accent hover:text-black max-md:w-full max-md:justify-center">Explore Practices</a>
-        <a href="https://github.com/eddndev/crypto" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-colors duration-200 text-text-secondary hover:text-text-primary max-md:w-full max-md:justify-center">View on GitHub →</a>
+        <a href="#practices" class="hero__cta--solid inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-all duration-200 bg-text-primary text-bg-primary hover:bg-accent hover:text-black max-md:w-full max-md:justify-center">{t.cta}</a>
+        <a href="https://github.com/eddndev/crypto" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-colors duration-200 text-text-secondary hover:text-text-primary max-md:w-full max-md:justify-center">{t.github}</a>
       </div>
     </div>
   </div>

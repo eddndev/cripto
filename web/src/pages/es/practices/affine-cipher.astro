@@ -1,16 +1,16 @@
 ---
-import Base from '../../layouts/Base.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
 import { render } from 'astro:content';
 import { getEntry } from 'astro:content';
 
-const entry = await getEntry('practices', 'affine-cipher');
+const entry = await getEntry('practices', 'affine-cipher-es');
 const { Content } = await render(entry!);
 const authors = entry!.data.authors ?? [];
 ---
 
-<Base title="Affine Cipher — Intro to Cryptography" description="Compute affine cipher encryption and decryption functions using the Extended Euclidean Algorithm.">
+<Base title="Cifrado Afín — Intro a la Criptografía" description="Calcula las funciones de cifrado y descifrado del cifrado afín usando el Algoritmo Extendido de Euclides.">
   <Header />
   <main class="pt-28 pb-24 relative overflow-hidden">
     <div id="blob-container" class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
@@ -20,24 +20,24 @@ const authors = entry!.data.authors ?? [];
       <!-- Breadcrumb + Intro -->
       <div class="affine-intro mb-16">
         <a href="/#practices" class="inline-flex items-center gap-2 font-mono text-[0.8rem] text-text-secondary hover:text-accent transition-colors duration-200 mb-8">
-          <span>←</span> Back to practices
+          <span>←</span> Volver a prácticas
         </a>
-        <span class="block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">Practice 01</span>
-        <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-extrabold tracking-[-0.02em] uppercase mb-4">AFFINE CIPHER</h1>
+        <span class="block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">Práctica 02</span>
+        <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-extrabold tracking-[-0.02em] uppercase mb-4">CIFRADO AFÍN</h1>
         <p class="text-text-secondary text-[1.05rem] leading-relaxed max-w-[640px]">
-          Enter the parameters of the affine cipher — α, β and n — to compute the encryption
-          and decryption functions. The multiplicative inverse of α is found using the Extended
-          Euclidean Algorithm, shown step by step.
+          Ingresa los parámetros del cifrado afín — α, β y n — para calcular las funciones de
+          cifrado y descifrado. El inverso multiplicativo de α se obtiene mediante el Algoritmo
+          Extendido de Euclides, mostrado paso a paso.
         </p>
       </div>
 
       <!-- Tabs -->
       <div class="flex gap-0 mb-0">
         <button id="tab-compute" class="tab-btn active font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-[#3a3a42] border-b-0 transition-colors duration-200">
-          COMPUTE
+          CÁLCULO
         </button>
         <button id="tab-writeup" class="tab-btn font-mono text-[0.8rem] font-semibold tracking-[0.08em] uppercase py-3 px-6 border border-[#3a3a42] border-b-0 transition-colors duration-200">
-          WRITEUP
+          DESARROLLO
         </button>
       </div>
 
@@ -47,10 +47,10 @@ const authors = entry!.data.authors ?? [];
           <!-- Left: Inputs -->
           <div class="flex flex-col gap-6">
             <div>
-              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-3">Parameters</label>
+              <label class="block font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-3">Parámetros</label>
               <div class="flex flex-col gap-3">
                 <div>
-                  <label class="block font-mono text-[0.7rem] text-[#a0a0aa] mb-1.5">α (alpha)</label>
+                  <label class="block font-mono text-[0.7rem] text-[#a0a0aa] mb-1.5">α (alfa)</label>
                   <input type="number" id="input-alpha" value="3" class="param-input w-full bg-[#0c0c12] border border-[#3a3a42] p-3 font-mono text-[0.95rem] text-text-primary text-center focus:outline-none focus:border-accent transition-colors duration-200" />
                 </div>
                 <div>
@@ -58,19 +58,19 @@ const authors = entry!.data.authors ?? [];
                   <input type="number" id="input-beta" value="5" class="param-input w-full bg-[#0c0c12] border border-[#3a3a42] p-3 font-mono text-[0.95rem] text-text-primary text-center focus:outline-none focus:border-accent transition-colors duration-200" />
                 </div>
                 <div>
-                  <label class="block font-mono text-[0.7rem] text-[#a0a0aa] mb-1.5">n (modulus)</label>
+                  <label class="block font-mono text-[0.7rem] text-[#a0a0aa] mb-1.5">n (módulo)</label>
                   <input type="number" id="input-n" value="26" min="1" class="param-input w-full bg-[#0c0c12] border border-[#3a3a42] p-3 font-mono text-[0.95rem] text-text-primary text-center focus:outline-none focus:border-accent transition-colors duration-200" />
                 </div>
               </div>
             </div>
             <button id="compute-btn" class="font-mono text-[0.8rem] font-semibold tracking-[0.1em] uppercase py-3 px-6 bg-accent-deep text-white border-none cursor-pointer transition-all duration-200 hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed">
-              COMPUTE
+              CALCULAR
             </button>
           </div>
 
           <!-- Right: Results -->
           <div class="flex flex-col">
-            <span id="result-placeholder" class="font-mono text-[0.8rem] text-text-secondary/60 self-center mt-16">Enter parameters and click compute</span>
+            <span id="result-placeholder" class="font-mono text-[0.8rem] text-text-secondary/60 self-center mt-16">Ingresa los parámetros y haz clic en calcular</span>
             <div id="result-content" class="hidden flex flex-col gap-5">
 
               <!-- Validation -->
@@ -81,7 +81,7 @@ const authors = entry!.data.authors ?? [];
 
               <!-- ek -->
               <div class="p-4 border border-[#3a3a42] bg-[#0c0c12]">
-                <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Encryption function</span>
+                <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Función de cifrado</span>
                 <div id="ek-display" class="font-mono text-[1.05rem] text-accent flex items-center"></div>
               </div>
 
@@ -92,13 +92,13 @@ const authors = entry!.data.authors ?? [];
 
               <!-- Inverse -->
               <div class="p-4 border border-[#3a3a42] bg-[#0c0c12]">
-                <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Multiplicative inverse</span>
+                <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Inverso multiplicativo</span>
                 <div id="inv-display" class="font-mono text-[0.95rem]"></div>
               </div>
 
               <!-- dk -->
               <div class="p-4 border border-[#3a3a42] bg-[#0c0c12]">
-                <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Decryption function</span>
+                <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Función de descifrado</span>
                 <div id="dk-display" class="font-mono text-[1.05rem] flex items-center"></div>
               </div>
 
@@ -111,7 +111,7 @@ const authors = entry!.data.authors ?? [];
       <div id="panel-writeup" class="panel bg-[#13131a]/80 backdrop-blur-sm border border-[#3a3a42] p-8 max-md:p-5 hidden">
         {authors.length > 0 && (
           <div class="mb-6 pb-4 border-b border-[#3a3a42]">
-            <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Authors</span>
+            <span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-[0.08em] mb-2">Autores</span>
             <ul class="flex flex-wrap gap-2 list-none m-0 p-0">
               {authors.map((name: string) => (
                 <li class="font-mono text-[0.8rem] text-text-secondary border border-[#3a3a42] px-3 py-1 bg-[#0c0c12]">{name}</li>
@@ -187,7 +187,7 @@ const authors = entry!.data.authors ?? [];
 <script>
   async function init() {
     // --- Load WASM ---
-    const wasm = await import('../../wasm/affine/affine.js');
+    const wasm = await import('../../../wasm/affine/affine.js');
     await wasm.default();
 
     // --- DOM refs ---
@@ -240,7 +240,7 @@ const authors = entry!.data.authors ?? [];
       const n = parseInt(inputN.value) || 0;
 
       if (n <= 0) {
-        resultPlaceholder.textContent = 'n must be greater than 0';
+        resultPlaceholder.textContent = 'n debe ser mayor que 0';
         resultPlaceholder.classList.remove('hidden');
         resultContent.classList.add('hidden');
         return;
@@ -266,7 +266,7 @@ const authors = entry!.data.authors ?? [];
 
       // Validation
       valDot.className = `w-2.5 h-2.5 rounded-full shrink-0 ${coprime ? 'bg-green-500' : 'bg-red-500'}`;
-      valText.innerHTML = `gcd(${alpha}, ${n}) = ${g} &mdash; <span class="${coprime ? 'text-green-400' : 'text-red-400'} font-semibold">${coprime ? 'COPRIME' : 'NOT COPRIME'}</span>`;
+      valText.innerHTML = `mcd(${alpha}, ${n}) = ${g} &mdash; <span class="${coprime ? 'text-green-400' : 'text-red-400'} font-semibold">${coprime ? 'COPRIMOS' : 'NO COPRIMOS'}</span>`;
 
       // ek
       ekDisplay.innerHTML = `<span class="fn-badge">E<sub>k</sub></span>(x) = (${alpha} &middot; x + ${beta}) mod ${n}`;
@@ -275,7 +275,7 @@ const authors = entry!.data.authors ?? [];
       const maxA = Math.max(...quotients.map((_: number, i: number) => remainders[i]));
       const pad = String(maxA).length;
 
-      let divHTML = '<span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Euclidean divisions</span>';
+      let divHTML = '<span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Divisiones euclidianas</span>';
 
       for (let i = 0; i < quotients.length; i++) {
         const aStr = String(remainders[i]).padStart(pad);
@@ -293,7 +293,7 @@ const authors = entry!.data.authors ?? [];
 
       if (teqs && teqs.length > 0) {
         transHTML += '<hr class="border-[#3a3a42] my-4" />';
-        transHTML += '<span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Transformation equations</span>';
+        transHTML += '<span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Ecuaciones de transformación</span>';
 
         for (const eq of teqs) {
           const rClass = eq.remainder === g && coprime ? 'ok' : 'val';
@@ -307,7 +307,7 @@ const authors = entry!.data.authors ?? [];
 
       if (coprime && bs) {
         backHTML += '<hr class="border-[#3a3a42] my-4" />';
-        backHTML += '<span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Back-substitution</span>';
+        backHTML += '<span class="block font-mono text-[0.7rem] text-[#a0a0aa] uppercase tracking-wider mb-2">Sustitución hacia atrás</span>';
 
         let lo = bs.init_lo;
         let cA = bs.init_c_a;
@@ -363,7 +363,7 @@ const authors = entry!.data.authors ?? [];
         dkDisplay.innerHTML = `<span class="fn-badge">D<sub>k</sub></span>(y) = ${inv} &middot; (y &minus; ${beta}) mod ${n}`;
         dkDisplay.className = 'font-mono text-[1.05rem] text-accent flex items-center';
       } else {
-        invDisplay.innerHTML = `<span class="text-red-400">&alpha;<sup>&minus;1</sup> does not exist &mdash; &alpha; and n are not coprime</span>`;
+        invDisplay.innerHTML = `<span class="text-red-400">&alpha;<sup>&minus;1</sup> no existe &mdash; &alpha; y n no son coprimos</span>`;
         dkDisplay.innerHTML = `<span class="text-red-400">&mdash;</span>`;
         dkDisplay.className = 'font-mono text-[1.05rem] flex items-center';
       }

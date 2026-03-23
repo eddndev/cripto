@@ -1,0 +1,360 @@
+---
+title: "Cifrado Afín"
+description: "Cifra y descifra con el cifrado afín sobre ℤₙ"
+tags: ["aritmética modular", "afín", "cifrado"]
+order: 2
+draft: false
+lang: es
+authors:
+  - "Alonso Sánchez Eduardo"
+  - "Ramírez Lozano Gael Martin"
+  - "Zaragoza Guerrero Gustavo"
+---
+
+## El cifrado afín
+
+El cifrado afín encripta aplicando una función lineal sobre aritmética modular. Dados las claves **α** (multiplicativa) y **β** (aditiva) sobre un alfabeto de tamaño **n**:
+
+- **Cifrado:** e_k(x) = (α · x + β) mod n
+- **Descifrado:** d_k(y) = α⁻¹ · (y − β) mod n
+
+Para que el cifrado sea reversible, **α debe tener un inverso multiplicativo módulo n**, lo cual existe si y solo si mcd(α, n) = 1.
+
+Encontrar ese inverso es el problema central — y el Algoritmo Extendido de Euclides es la herramienta que lo resuelve.
+
+---
+
+## El algoritmo de Euclides
+
+Antes de extenderlo, recordemos el algoritmo clásico para calcular mcd(a, b). Se basa en la propiedad de que mcd(a, b) = mcd(b, a mod b):
+
+```
+mcd(a, b):
+  mientras b ≠ 0:
+    a, b ← b, a mod b
+  retornar a
+```
+
+**Ejemplo:** mcd(26, 3):
+
+| Paso | a  | b  |
+|------|----|----|
+| 0    | 26 | 3  |
+| 1    | 3  | 2  |
+| 2    | 2  | 1  |
+| 3    | 1  | 0  |
+
+Resultado: mcd(26, 3) = 1. Como es igual a 1, el inverso existe.
+
+---
+
+## El Algoritmo Extendido de Euclides
+
+La extensión calcula no solo mcd(a, b), sino también los enteros **s** y **t** que satisfacen la **identidad de Bézout**:
+
+```
+a · s + b · t = mcd(a, b)
+```
+
+Cuando mcd(α, n) = 1, obtenemos n · s + α · t = 1, lo que significa que **α · t ≡ 1 (mod n)** — por lo tanto **t mod n** es el inverso multiplicativo α⁻¹.
+
+### El método iterativo
+
+Mantenemos tres secuencias — r (residuos), s (coeficientes de n) y t (coeficientes de α) — comenzando con:
+
+```
+r₀ = n    s₀ = 1    t₀ = 0
+r₁ = α    s₁ = 0    t₁ = 1
+```
+
+En cada paso, calculamos el cociente qᵢ = ⌊rᵢ₋₁ / rᵢ⌋ y actualizamos:
+
+```
+rᵢ₊₁ = rᵢ₋₁ − qᵢ · rᵢ
+sᵢ₊₁ = sᵢ₋₁ − qᵢ · sᵢ
+tᵢ₊₁ = tᵢ₋₁ − qᵢ · tᵢ
+```
+
+Se detiene cuando rᵢ₊₁ = 0. El último residuo no nulo es el mcd, y su valor **t** correspondiente es el inverso (mod n).
+
+### Ejemplo paso a paso: α = 3, n = 26
+
+| i | rᵢ | sᵢ | tᵢ | qᵢ |
+|---|----|----|-----|-----|
+| 0 | 26 | 1  | 0   | —   |
+| 1 | 3  | 0  | 1   | —   |
+| 2 | 2  | 1  | −8  | 8   |
+| 3 | 1  | −1 | 9   | 1   |
+| 4 | 0  | 3  | −26 | 2   |
+
+En i = 3 el residuo llega a 1 (el mcd). El valor t correspondiente es **9**.
+
+**Verificación:** (−1) · 26 + 9 · 3 = −26 + 27 = 1 ✓
+
+Por lo tanto α⁻¹ ≡ 9 (mod 26), y:
+
+- e_k(x) = (3 · x + 5) mod 26
+- d_k(y) = 9 · (y − 5) mod 26
+
+### Cálculo de i = 2 en detalle
+
+```
+q₂ = ⌊r₀ / r₁⌋ = ⌊26 / 3⌋ = 8
+
+r₂ = r₀ − q₂ · r₁ = 26 − 8 · 3 = 2
+s₂ = s₀ − q₂ · s₁ = 1 − 8 · 0 = 1
+t₂ = t₀ − q₂ · t₁ = 0 − 8 · 1 = −8
+```
+
+Comprobación: s₂ · 26 + t₂ · 3 = 1 · 26 + (−8) · 3 = 26 − 24 = 2 = r₂ ✓
+
+### Cálculo de i = 3
+
+```
+q₃ = ⌊r₁ / r₂⌋ = ⌊3 / 2⌋ = 1
+
+r₃ = r₁ − q₃ · r₂ = 3 − 1 · 2 = 1
+s₃ = s₁ − q₃ · s₂ = 0 − 1 · 1 = −1
+t₃ = t₁ − q₃ · t₂ = 1 − 1 · (−8) = 9
+```
+
+Comprobación: (−1) · 26 + 9 · 3 = −26 + 27 = 1 = r₃ ✓
+
+---
+
+## Ecuaciones de transformación
+
+Antes de realizar la sustitución hacia atrás, reescribimos cada división euclidiana que produjo un residuo no nulo como una ecuación que **aísla** dicho residuo. De la forma de división
+
+```
+a = b · q + r
+```
+
+reorganizamos a
+
+```
+r = a − q · b
+```
+
+Este paso no cambia ningún valor — simplemente expresa cada residuo intermedio como una diferencia de residuos anteriores, que es exactamente la forma que necesita la sustitución hacia atrás.
+
+**Ejemplo** (α = 3, n = 26):
+
+| División | Ecuación de transformación |
+|---|---|
+| 26 = 3 · 8 + 2 | 2 = 26 − 8 · 3 |
+| 3 = 2 · 1 + 1 | 1 = 3 − 1 · 2 |
+| 2 = 1 · 2 + 0 | *(omitida — el residuo es 0)* |
+
+La última ecuación de transformación con residuo no nulo da el punto de partida para la sustitución hacia atrás: `1 = 3 − 1 · 2`. Desde aquí trabajamos hacia atrás, reemplazando cada residuo intermedio con su propia ecuación de transformación hasta que solo queden los operandos originales (n y α).
+
+---
+
+## Por qué funciona la sustitución hacia atrás
+
+Cada fila mantiene el invariante **sᵢ · n + tᵢ · α = rᵢ**. Como la recurrencia es una combinación lineal de las dos filas anteriores, el invariante se propaga automáticamente. Cuando el residuo llega a mcd(α, n) = 1, tenemos nuestros coeficientes de Bézout.
+
+---
+
+## Cuando el inverso no existe
+
+Si mcd(α, n) ≠ 1 el algoritmo termina con un residuo mayor que 1. En ese caso no existe t que satisfaga α · t ≡ 1 (mod n), y el cifrado afín no puede usarse con esos parámetros — la función de cifrado no sería biyectiva.
+
+**Ejemplo:** α = 4, n = 26 → mcd(4, 26) = 2.
+
+| i | rᵢ | sᵢ | tᵢ | qᵢ |
+|---|----|----|-----|-----|
+| 0 | 26 | 1  | 0   | —   |
+| 1 | 4  | 0  | 1   | —   |
+| 2 | 2  | 1  | −6  | 6   |
+| 3 | 0  | −2 | 13  | 2   |
+
+El último residuo no nulo es **2**, no 1 — no existe inverso.
+
+---
+
+## Código fuente en Rust — compilado a WebAssembly
+
+La lógica de cálculo se ejecuta en el navegador como un módulo WASM construido desde Rust. El crate se encuentra en `crates/affine/` y expone una única función `compute(α, β, n)` mediante `wasm-bindgen` que retorna JSON estructurado con los pasos de la división euclidiana, las ecuaciones de transformación, los coeficientes de sustitución hacia atrás y el inverso modular.
+
+### División entera
+
+`Math.floor(a / b)` de JavaScript redondea hacia −∞, mientras que la división entera de Rust trunca hacia cero. Este helper replica la semántica de JS:
+
+```rust
+fn floor_div(a: i64, b: i64) -> i64 {
+    let d = a / b;
+    let r = a % b;
+    if r != 0 && ((r ^ b) < 0) {
+        d - 1
+    } else {
+        d
+    }
+}
+```
+
+### Inverso modular
+
+El Algoritmo Extendido de Euclides expresado como un bucle iterativo que rastrea el coeficiente de Bézout **t**:
+
+```rust
+fn mod_inverse(a: i64, n: i64) -> i64 {
+    let (mut r0, mut r1) = (n, a);
+    let (mut t0, mut t1): (i64, i64) = (0, 1);
+
+    while r1 != 0 {
+        let q = floor_div(r0, r1);
+        let tmp_r = r1;
+        r1 = r0 - q * r1;
+        r0 = tmp_r;
+        let tmp_t = t1;
+        t1 = t0 - q * t1;
+        t0 = tmp_t;
+    }
+
+    ((t0 % n) + n) % n
+}
+```
+
+### Función principal de cálculo
+
+El punto de entrada realiza las divisiones euclidianas, construye las ecuaciones de transformación, verifica coprimalidad, calcula el inverso y traza los pasos de sustitución hacia atrás — todo retornado como un `ComputeResult` serializado:
+
+```rust
+#[wasm_bindgen]
+pub fn compute(alpha: i64, beta: i64, n: i64) -> Result<String, String> {
+    if n <= 0 {
+        return Err("n must be greater than 0".into());
+    }
+
+    // --- Divisiones euclidianas ---
+    let mut remainders = vec![n, alpha];
+    let mut quotients: Vec<i64> = Vec::new();
+    let (mut a, mut b) = (n, alpha);
+
+    while b != 0 {
+        let q = floor_div(a, b);
+        let r = a - q * b;
+        quotients.push(q);
+        remainders.push(r);
+        a = b;
+        b = r;
+    }
+
+    let gcd = a;
+    let coprime = gcd == 1;
+
+    // --- Ecuaciones de transformación ---
+    // Para cada división a = b·q + r donde r ≠ 0, producir r = a − q·b
+    let transform_eqs: Vec<TransformEq> = quotients
+        .iter()
+        .enumerate()
+        .filter(|&(i, _)| remainders[i + 2] != 0)
+        .map(|(i, &q)| TransformEq {
+            remainder: remainders[i + 2],
+            dividend: remainders[i],
+            divisor: remainders[i + 1],
+            quotient: q,
+        })
+        .collect();
+
+    // --- Inverso modular ---
+    let inverse = if coprime {
+        Some(mod_inverse(alpha, n))
+    } else {
+        None
+    };
+
+    // --- Sustitución hacia atrás ---
+    let back_sub = if coprime && remainders.len() >= 4 {
+        let m = remainders.len() - 2;
+        let init_lo = m - 2;
+        let mut c_a: i64 = 1;
+        let mut c_b: i64 = -quotients[m - 2];
+        let init_c_a = c_a;
+        let init_c_b = c_b;
+
+        let mut steps = Vec::new();
+        let mut lo = init_lo;
+
+        while lo > 0 {
+            let q_sub = quotients[lo - 1];
+            let c_a_old = c_a;
+            let c_b_old = c_b;
+            let new_a = c_b;
+            let new_b = c_a - c_b * q_sub;
+            c_a = new_a;
+            c_b = new_b;
+            let new_lo = lo - 1;
+
+            steps.push(BackSubStep {
+                lo, q_sub, c_a_old, c_b_old,
+                c_a_new: c_a, c_b_new: c_b, new_lo,
+            });
+
+            lo = new_lo;
+        }
+
+        Some(BackSub {
+            init_lo, init_c_a, init_c_b, steps,
+        })
+    } else {
+        None
+    };
+
+    serde_json::to_string(&ComputeResult {
+        alpha, beta, n, remainders, quotients,
+        gcd, coprime, inverse, transform_eqs, back_sub,
+    }).map_err(|e| e.to_string())
+}
+```
+
+### Estructuras de resultado
+
+```rust
+#[derive(Serialize)]
+pub struct ComputeResult {
+    pub alpha: i64,
+    pub beta: i64,
+    pub n: i64,
+    pub remainders: Vec<i64>,
+    pub quotients: Vec<i64>,
+    pub gcd: i64,
+    pub coprime: bool,
+    pub inverse: Option<i64>,
+    pub transform_eqs: Vec<TransformEq>,
+    pub back_sub: Option<BackSub>,
+}
+
+/// Ecuación de transformación: aísla el residuo de una división euclidiana.
+/// De `dividendo = divisor · cociente + residuo` obtenemos
+/// `residuo = dividendo − cociente · divisor`.
+#[derive(Serialize)]
+pub struct TransformEq {
+    pub remainder: i64,
+    pub dividend: i64,
+    pub divisor: i64,
+    pub quotient: i64,
+}
+
+#[derive(Serialize)]
+pub struct BackSub {
+    pub init_lo: usize,
+    pub init_c_a: i64,
+    pub init_c_b: i64,
+    pub steps: Vec<BackSubStep>,
+}
+
+#[derive(Serialize)]
+pub struct BackSubStep {
+    pub lo: usize,
+    pub q_sub: i64,
+    pub c_a_old: i64,
+    pub c_b_old: i64,
+    pub c_a_new: i64,
+    pub c_b_new: i64,
+    pub new_lo: usize,
+}
+```
+
+El lado JavaScript carga el módulo WASM, llama a `compute()`, parsea el JSON y renderiza el HTML paso a paso — manteniendo la capa de presentación en el navegador mientras las matemáticas se ejecutan en WebAssembly compilado.

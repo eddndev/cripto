@@ -1,5 +1,10 @@
 ---
-
+const currentPath = Astro.url.pathname;
+const isSpanish = currentPath.startsWith('/es/');
+const altLang = isSpanish ? 'EN' : 'ES';
+const altHref = isSpanish
+  ? currentPath.replace(/^\/es\//, '/')
+  : `/es${currentPath}`;
 ---
 
 <header class="fixed top-0 w-full z-100 bg-transparent backdrop-blur-[12px]">
@@ -11,7 +16,7 @@
       <span class="header__hamburger"></span>
     </label>
 
-    <nav class="header__nav">
+    <nav class="header__nav flex items-center">
       <ul class="header__nav-list flex gap-10 list-none m-0 p-0">
         <li class="header__nav-item">
           <a href="#practices" class="header__link flex items-baseline gap-2 no-underline transition-colors duration-200">
@@ -35,6 +40,9 @@
           </a>
         </li>
       </ul>
+
+      <span class="header__lang-divider text-[#3a3a42] mx-4 select-none">|</span>
+      <a href={altHref} class="header__lang-link font-mono text-xs font-medium text-text-secondary tracking-[0.05em] hover:text-text-primary transition-colors duration-200 no-underline">{altLang}</a>
 
       <div class="header__mobile-footer hidden">
         <span>sys.status: online</span>
@@ -109,6 +117,25 @@
     .header__hamburger::after {
       content: '';
       transform: translateY(8px);
+    }
+
+    .header__lang-divider {
+      display: none;
+    }
+
+    .header__lang-link {
+      font-size: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.02em !important;
+      color: var(--color-text-secondary) !important;
+      padding: 1.25rem;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+    }
+
+    .header__lang-link:active {
+      background: var(--color-bg-card-hover);
+      border-color: var(--color-accent-deep);
     }
 
     /* Full-screen nav overlay */

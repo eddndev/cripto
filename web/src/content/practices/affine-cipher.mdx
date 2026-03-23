@@ -4,6 +4,10 @@ description: "Encrypt and decrypt with the affine cipher over ℤₙ"
 tags: ["modular arithmetic", "affine", "encryption"]
 order: 2
 draft: false
+authors:
+  - "Alonso Sánchez Eduardo"
+  - "Ramírez Lozano Gael Martin"
+  - "Zaragoza Guerrero Gustavo"
 ---
 
 ## The Affine Cipher
@@ -117,6 +121,34 @@ Check: (−1) · 26 + 9 · 3 = −26 + 27 = 1 = r₃ ✓
 
 ---
 
+## Transformation equations
+
+Before back-substituting, we rewrite each Euclidean division that produced a nonzero remainder as an equation that **isolates** that remainder. From the division form
+
+```
+a = b · q + r
+```
+
+we rearrange to
+
+```
+r = a − q · b
+```
+
+This step does not change any values — it just expresses every intermediate remainder as a difference of earlier remainders, which is exactly the form back-substitution needs.
+
+**Example** (α = 3, n = 26):
+
+| Division | Transformation equation |
+|---|---|
+| 26 = 3 · 8 + 2 | 2 = 26 − 8 · 3 |
+| 3 = 2 · 1 + 1 | 1 = 3 − 1 · 2 |
+| 2 = 1 · 2 + 0 | *(skipped — remainder is 0)* |
+
+The last nonzero transformation equation gives the starting point for back-substitution: `1 = 3 − 1 · 2`. From here we work backwards, replacing each intermediate remainder with its own transformation equation until only the original operands (n and α) remain.
+
+---
+
 ## Why back-substitution works
 
 Each row maintains the invariant **sᵢ · n + tᵢ · α = rᵢ**. Since the recurrence is a linear combination of the two previous rows, the invariant propagates automatically. When the remainder reaches gcd(α, n) = 1, we have our Bézout coefficients.
@@ -185,7 +217,7 @@ fn mod_inverse(a: i64, n: i64) -> i64 {
 
 ### Main compute function
 
-The entry point performs the Euclidean divisions, checks coprimality, computes the inverse, and traces the back-substitution steps — all returned as a serialized `ComputeResult`:
+The entry point performs the Euclidean divisions, builds the transformation equations, checks coprimality, computes the inverse, and traces the back-substitution steps — all returned as a serialized `ComputeResult`:
 
 ```rust
 #[wasm_bindgen]
@@ -194,7 +226,7 @@ pub fn compute(alpha: i64, beta: i64, n: i64) -> Result<String, String> {
         return Err("n must be greater than 0".into());
     }
 
-    // Euclidean divisions
+    // --- Euclidean divisions ---
     let mut remainders = vec![n, alpha];
     let mut quotients: Vec<i64> = Vec::new();
     let (mut a, mut b) = (n, alpha);
@@ -211,18 +243,36 @@ pub fn compute(alpha: i64, beta: i64, n: i64) -> Result<String, String> {
     let gcd = a;
     let coprime = gcd == 1;
 
+    // --- Transformation equations ---
+    // For each division a = b·q + r where r ≠ 0, produce r = a − q·b
+    let transform_eqs: Vec<TransformEq> = quotients
+        .iter()
+        .enumerate()
+        .filter(|&(i, _)| remainders[i + 2] != 0)
+        .map(|(i, &q)| TransformEq {
+            remainder: remainders[i + 2],
+            dividend: remainders[i],
+            divisor: remainders[i + 1],
+            quotient: q,
+        })
+        .collect();
+
+    // --- Modular inverse ---
     let inverse = if coprime {
         Some(mod_inverse(alpha, n))
     } else {
         None
     };
 
-    // Back-substitution (when coprime and enough steps)
+    // --- Back-substitution ---
     let back_sub = if coprime && remainders.len() >= 4 {
         let m = remainders.len() - 2;
         let init_lo = m - 2;
         let mut c_a: i64 = 1;
         let mut c_b: i64 = -quotients[m - 2];
+        let init_c_a = c_a;
+        let init_c_b = c_b;
+
         let mut steps = Vec::new();
         let mut lo = init_lo;
 
@@ -245,7 +295,7 @@ pub fn compute(alpha: i64, beta: i64, n: i64) -> Result<String, String> {
         }
 
         Some(BackSub {
-            init_lo, init_c_a: 1, init_c_b: -quotients[m - 2], steps,
+            init_lo, init_c_a, init_c_b, steps,
         })
     } else {
         None
@@ -253,7 +303,7 @@ pub fn compute(alpha: i64, beta: i64, n: i64) -> Result<String, String> {
 
     serde_json::to_string(&ComputeResult {
         alpha, beta, n, remainders, quotients,
-        gcd, coprime, inverse, back_sub,
+        gcd, coprime, inverse, transform_eqs, back_sub,
     }).map_err(|e| e.to_string())
 }
 ```
@@ -271,7 +321,19 @@ pub struct ComputeResult {
     pub gcd: i64,
     pub coprime: bool,
     pub inverse: Option<i64>,
+    pub transform_eqs: Vec<TransformEq>,
     pub back_sub: Option<BackSub>,
+}
+
+/// Transformation equation: isolates the remainder from a Euclidean division.
+/// From `dividend = divisor · quotient + remainder` we get
+/// `remainder = dividend − quotient · divisor`.
+#[derive(Serialize)]
+pub struct TransformEq {
+    pub remainder: i64,
+    pub dividend: i64,
+    pub divisor: i64,
+    pub quotient: i64,
 }
 
 #[derive(Serialize)]

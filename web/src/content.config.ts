@@ -9,6 +9,8 @@ const practices = defineCollection({
     tags: z.array(z.string()),
     order: z.number(),
     draft: z.boolean().default(true),
+    authors: z.array(z.string()).optional(),
+    lang: z.enum(['en', 'es']).default('en'),
   }),
 });
 

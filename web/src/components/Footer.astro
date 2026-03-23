@@ -1,5 +1,27 @@
 ---
+interface Props { lang?: 'en' | 'es'; }
+const { lang = 'en' } = Astro.props;
 const currentYear = new Date().getFullYear();
+
+const t = lang === 'es' ? {
+  explore: '[ Explorar ]',
+  practices: 'Prácticas', practicesSub: 'Cifrar / Hash / Ocultar',
+  about: 'Acerca de', aboutSub: 'Rust / WASM',
+  github: 'GitHub', githubSub: 'Código / Proyectos',
+  heading1: 'HABLA', heading2: 'MOS.',
+  contact: '¿Tienes alguna pregunta, quieres colaborar o simplemente hablar sobre criptografía y Rust?',
+  cta: 'Iniciar conversación',
+  rights: `TODOS LOS DERECHOS RESERVADOS.`,
+} : {
+  explore: '[ Explore ]',
+  practices: 'Practices', practicesSub: 'Encrypt / Hash / Hide',
+  about: 'About', aboutSub: 'Rust / WASM',
+  github: 'GitHub', githubSub: 'Source / Projects',
+  heading1: "LET'S", heading2: 'TALK.',
+  contact: 'Have a question, want to collaborate, or just want to chat about cryptography and Rust?',
+  cta: 'Start Conversation',
+  rights: `ALL RIGHTS RESERVED.`,
+};
 ---
 
 <footer class="min-h-dvh flex flex-col justify-center py-24 border-t border-border relative overflow-hidden">
@@ -8,19 +30,19 @@ const currentYear = new Date().getFullYear();
 
       <!-- Site Map -->
       <nav class="hidden lg:block">
-        <h2 class="font-mono text-[0.8rem] font-medium text-accent uppercase tracking-[0.15em] mb-12 leading-none">[ Explore ]</h2>
+        <h2 class="font-mono text-[0.8rem] font-medium text-accent uppercase tracking-[0.15em] mb-12 leading-none">{t.explore}</h2>
         <div class="flex flex-col">
           <a href="#practices" class="footer__map-item flex items-baseline justify-between w-full py-6 border-b border-border transition-[border-color] duration-300 hover:border-accent-deep group">
-            <span class="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold uppercase tracking-[-0.02em] text-text-primary transition-colors duration-300">Practices</span>
-            <span class="font-mono text-[0.85rem] text-text-secondary tracking-[0.02em] transition-colors duration-300 group-hover:text-accent">Encrypt / Hash / Hide</span>
+            <span class="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold uppercase tracking-[-0.02em] text-text-primary transition-colors duration-300">{t.practices}</span>
+            <span class="font-mono text-[0.85rem] text-text-secondary tracking-[0.02em] transition-colors duration-300 group-hover:text-accent">{t.practicesSub}</span>
           </a>
           <a href="#about" class="footer__map-item flex items-baseline justify-between w-full py-6 border-b border-border transition-[border-color] duration-300 hover:border-accent-deep group">
-            <span class="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold uppercase tracking-[-0.02em] text-text-primary transition-colors duration-300">About</span>
-            <span class="font-mono text-[0.85rem] text-text-secondary tracking-[0.02em] transition-colors duration-300 group-hover:text-accent">Rust / WASM</span>
+            <span class="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold uppercase tracking-[-0.02em] text-text-primary transition-colors duration-300">{t.about}</span>
+            <span class="font-mono text-[0.85rem] text-text-secondary tracking-[0.02em] transition-colors duration-300 group-hover:text-accent">{t.aboutSub}</span>
           </a>
           <a href="https://github.com/eddndev" target="_blank" rel="noopener noreferrer" class="footer__map-item flex items-baseline justify-between w-full py-6 border-b border-border transition-[border-color] duration-300 hover:border-accent-deep group">
-            <span class="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold uppercase tracking-[-0.02em] text-text-primary transition-colors duration-300">GitHub</span>
-            <span class="font-mono text-[0.85rem] text-text-secondary tracking-[0.02em] transition-colors duration-300 group-hover:text-accent">Source / Projects</span>
+            <span class="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold uppercase tracking-[-0.02em] text-text-primary transition-colors duration-300">{t.github}</span>
+            <span class="font-mono text-[0.85rem] text-text-secondary tracking-[0.02em] transition-colors duration-300 group-hover:text-accent">{t.githubSub}</span>
           </a>
         </div>
       </nav>
@@ -29,13 +51,13 @@ const currentYear = new Date().getFullYear();
       <div class="flex flex-col gap-10 lg:justify-between lg:min-h-full">
         <div class="flex flex-col">
           <span class="block w-3 h-3 rounded-full bg-accent mb-6" aria-hidden="true"></span>
-          <h3 class="text-[clamp(4rem,8vw,7rem)] max-sm:text-[clamp(3rem,12vw,5rem)] font-black tracking-[-0.04em] leading-[0.9] uppercase mb-8 text-text-primary">LET'S<br /><span class="text-accent">TALK.</span></h3>
+          <h3 class="text-[clamp(4rem,8vw,7rem)] max-sm:text-[clamp(3rem,12vw,5rem)] font-black tracking-[-0.04em] leading-[0.9] uppercase mb-8 text-text-primary">{t.heading1}<br /><span class="text-accent">{t.heading2}</span></h3>
           <p class="text-text-secondary text-[1.1rem] leading-[1.7] max-w-[440px]">
-            Have a question, want to collaborate, or just want to chat about cryptography and Rust?
+            {t.contact}
           </p>
         </div>
         <div class="flex gap-4">
-          <a href="#" id="email-cta" class="inline-flex items-center justify-center py-4 px-10 bg-accent text-black font-bold text-[0.95rem] rounded-full transition-[transform,box-shadow] duration-200 shadow-[0_4px_24px_rgba(167,139,250,0.2)] hover:scale-105 hover:shadow-[0_6px_32px_rgba(167,139,250,0.35)]">Start Conversation</a>
+          <a href="#" id="email-cta" class="inline-flex items-center justify-center py-4 px-10 bg-accent text-black font-bold text-[0.95rem] rounded-full transition-[transform,box-shadow] duration-200 shadow-[0_4px_24px_rgba(167,139,250,0.2)] hover:scale-105 hover:shadow-[0_6px_32px_rgba(167,139,250,0.35)]">{t.cta}</a>
         </div>
       </div>
 
@@ -43,7 +65,7 @@ const currentYear = new Date().getFullYear();
 
     <!-- Bottom bar -->
     <div class="mt-24 pt-8 border-t border-border flex flex-wrap justify-between items-center gap-6 font-mono text-[0.7rem] text-text-secondary tracking-[0.05em] max-sm:flex-col max-sm:text-center">
-      <span>&copy; {currentYear} EDDN.DEV. ALL RIGHTS RESERVED.</span>
+      <span>&copy; {currentYear} EDDN.DEV. {t.rights}</span>
       <div class="flex flex-wrap gap-6 justify-center">
         <a href="https://github.com/eddndev" target="_blank" rel="noopener noreferrer" class="transition-colors duration-200 hover:text-accent">GITHUB</a>
         <a href="https://www.linkedin.com/in/eddndev" target="_blank" rel="noopener noreferrer" class="transition-colors duration-200 hover:text-accent">LINKEDIN</a>

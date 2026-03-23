@@ -1,0 +1,110 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Hero from '../../components/Hero.astro';
+import PracticeCard from '../../components/PracticeCard.astro';
+import Footer from '../../components/Footer.astro';
+
+const practices = [
+  {
+    title: 'Esteganografía',
+    description: 'Oculta mensajes secretos dentro de imágenes usando codificación LSB. Sube un archivo e incrusta datos ocultos invisibles a simple vista.',
+    tags: ['LSB', 'imágenes', 'codificación'],
+    href: '/es/practices/steganography',
+  },
+  {
+    title: 'Cifrado Afín',
+    description: 'Cifra y descifra mensajes usando el cifrado afín. Valida coprimalidad, calcula inversos multiplicativos y observa e_k y d_k en acción.',
+    tags: ['aritmética modular', 'afín', 'cifrado'],
+    href: '/es/practices/affine-cipher',
+  },
+];
+---
+
+<Base title="Intro a la Criptografía" description="Una introducción práctica a la criptografía con Rust y WebAssembly.">
+  <Header />
+  <main class="relative overflow-hidden">
+    <div id="blob-container" class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
+    <Hero lang="es" />
+
+    <section id="practices" class="relative py-24 border-t border-border">
+      <div class="mx-auto w-full max-w-[1200px] px-8">
+        <div>
+          <span class="section-label block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">Lo que construirás</span>
+          <h2 class="section-title text-[clamp(2.5rem,5vw,4rem)] mb-12">PRÁCTICAS</h2>
+        </div>
+        <div class="grid grid-cols-2 max-md:grid-cols-1 gap-px bg-border border border-border">
+          {practices.map((p, i) => (
+            <PracticeCard
+              title={p.title}
+              description={p.description}
+              tags={p.tags}
+              index={i + 1}
+              comingSoon={!p.href}
+              href={p.href}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="relative py-24 pb-32 border-t border-border">
+      <div class="mx-auto w-full max-w-[1200px] px-8">
+        <div class="grid grid-cols-2 max-md:grid-cols-1 gap-16 max-md:gap-8 items-start">
+          <div class="about__left">
+            <span class="section-label block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">El enfoque</span>
+            <h2 class="section-title text-[clamp(2.5rem,5vw,4rem)] mb-0">APRENDE<br />HACIENDO.</h2>
+          </div>
+          <div class="about__right flex flex-col gap-5 pt-10 max-md:pt-0">
+            <p class="text-text-secondary text-[1.05rem] leading-[1.7] [&_strong]:text-text-primary [&_strong]:font-semibold">
+              Cada práctica está implementada en <strong>Rust</strong>, compilada a
+              <strong>WebAssembly</strong> y se ejecuta completamente en tu navegador.
+            </p>
+            <p class="text-text-secondary text-[1.05rem] leading-[1.7] [&_strong]:text-text-primary [&_strong]:font-semibold">
+              Sube archivos, transforma datos y observa los resultados en tiempo real — sin
+              servidores involucrados. Entiende los algoritmos, míralos funcionar y
+              experimenta con tus propios datos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer lang="es" />
+</Base>
+
+<script>
+  const blobContainer = document.getElementById('blob-container')!;
+  const BLOB_SPACING = 500;
+  const blobPresets = [
+    { color: '#1a1a4e', size: 600, opacity: 0.40, blur: 150, x: 10 },
+    { color: '#1e1b4b', size: 500, opacity: 0.30, blur: 140, x: 75 },
+    { color: '#172044', size: 450, opacity: 0.35, blur: 130, x: 35 },
+  ];
+
+  function generateBlobs() {
+    const totalHeight = blobContainer.parentElement!.scrollHeight;
+    const needed = Math.max(2, Math.ceil(totalHeight / BLOB_SPACING));
+
+    blobContainer.innerHTML = '';
+    for (let i = 0; i < needed; i++) {
+      const preset = blobPresets[i % blobPresets.length];
+      const blob = document.createElement('div');
+      blob.style.cssText = `
+        position: absolute;
+        top: ${i * BLOB_SPACING}px;
+        left: ${preset.x}%;
+        width: ${preset.size}px;
+        height: ${preset.size}px;
+        border-radius: 50%;
+        background: ${preset.color};
+        opacity: ${preset.opacity};
+        filter: blur(${preset.blur}px);
+        transform: translateX(-50%);
+      `;
+      blobContainer.appendChild(blob);
+    }
+  }
+
+  generateBlobs();
+</script>
