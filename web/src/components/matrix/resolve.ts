@@ -110,6 +110,33 @@ export function atomToSlotValue(atom: Atom): SlotValue | null {
 export const MAX_DIM = 6;
 
 /**
+ * Build a new draft by stamping `src` cells into `dst` with the given
+ * (anchorRow, anchorCol) as top-left. Cell strings are copied verbatim, so any
+ * `Sk` / `Sk[i,j]` references inside `src` are preserved. The destination is
+ * auto-resized up to MAX_DIM; overflow is clamped.
+ */
+export function stampDraftIntoDraft(
+  dst: MatrixDraft,
+  src: MatrixDraft,
+  anchorRow: number,
+  anchorCol: number,
+): MatrixDraft {
+  const targetRows = Math.min(MAX_DIM, Math.max(dst.rows, anchorRow + src.rows));
+  const targetCols = Math.min(MAX_DIM, Math.max(dst.cols, anchorCol + src.cols));
+  const resized = resizeDraft(dst, targetRows, targetCols);
+  const cells = resized.cells.map((row) => row.slice());
+  for (let i = 0; i < src.rows; i++) {
+    for (let j = 0; j < src.cols; j++) {
+      const r = anchorRow + i;
+      const c = anchorCol + j;
+      if (r >= targetRows || c >= targetCols) continue;
+      cells[r][c] = src.cells[i][j] ?? '0';
+    }
+  }
+  return { rows: targetRows, cols: targetCols, cells };
+}
+
+/**
  * Build a new draft by stamping a slot's contents into `draft` with the given
  * (anchorRow, anchorCol) as top-left. Stored references keep the link to the slot:
  *   - scalar slot → `Sk`

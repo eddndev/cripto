@@ -1,14 +1,28 @@
 import { useState } from 'react';
 import type { DragEvent as ReactDragEvent } from 'react';
 import type { MatrixDraft, SlotBank } from './types';
-import { resizeDraft, stampSlotIntoDraft } from './resolve';
-import { getSlotDrag, isSlotDrag } from './drag';
+import { resizeDraft, stampDraftIntoDraft, stampSlotIntoDraft } from './resolve';
+import {
+  getDraftDrag,
+  getSlotDrag,
+  isDraftDrag,
+  isSlotDrag,
+  setDraftDrag,
+  type DraftSource,
+} from './drag';
 
 type Props = {
+  /** Identifier used by drag targets to distinguish A from B. */
+  id: DraftSource;
   label: string;
   value: MatrixDraft;
   onChange: (next: MatrixDraft) => void;
   slots: SlotBank;
+  /**
+   * Invoked when the user drops another matrix (the sibling editor) onto this one.
+   * `fromSource` is the identifier of the dragged editor, never equal to `id`.
+   */
+  onDraftDrop?: (fromSource: DraftSource, anchorRow: number, anchorCol: number) => void;
   minRows?: number;
   minCols?: number;
   maxRows?: number;
@@ -19,20 +33,22 @@ type Props = {
 const MIN = 1;
 const MAX = 6;
 
+type DropHighlight = { row: number; col: number } | 'matrix' | null;
+
 export default function MatrixEditor({
+  id,
   label,
   value,
   onChange,
   slots,
+  onDraftDrop,
   minRows = MIN,
   minCols = MIN,
   maxRows = MAX,
   maxCols = MAX,
   lockCols,
 }: Props) {
-  const [dropTarget, setDropTarget] = useState<{ row: number; col: number } | 'matrix' | null>(
-    null,
-  );
+  const [dropTarget, setDropTarget] = useState<DropHighlight>(null);
   const effectiveMinCols = lockCols ?? minCols;
   const effectiveMaxCols = lockCols ?? maxCols;
 
@@ -48,47 +64,53 @@ export default function MatrixEditor({
     onChange({ ...value, cells });
   }
 
-  function handleCellDragOver(ev: ReactDragEvent, row: number, col: number) {
-    if (!isSlotDrag(ev)) return;
+  function accepts(ev: ReactDragEvent): 'slot' | 'draft' | null {
+    if (isSlotDrag(ev)) return 'slot';
+    if (isDraftDrag(ev) && onDraftDrop) return 'draft';
+    return null;
+  }
+
+  function handleDragOver(ev: ReactDragEvent, highlight: DropHighlight) {
+    if (!accepts(ev)) return;
     ev.preventDefault();
     ev.dataTransfer.dropEffect = 'copy';
-    setDropTarget({ row, col });
+    setDropTarget(highlight);
   }
 
-  function handleCellDrop(ev: ReactDragEvent, row: number, col: number) {
-    if (!isSlotDrag(ev)) return;
+  function handleDrop(ev: ReactDragEvent, row: number, col: number, stopBubble: boolean) {
+    const kind = accepts(ev);
+    if (!kind) return;
     ev.preventDefault();
-    ev.stopPropagation();
+    if (stopBubble) ev.stopPropagation();
     setDropTarget(null);
-    const idx = getSlotDrag(ev);
-    if (idx === null) return;
-    const slot = slots[idx];
-    if (!slot || slot.kind === 'empty') return;
-    onChange(stampSlotIntoDraft(value, idx, slot, row, col));
+    if (kind === 'slot') {
+      const idx = getSlotDrag(ev);
+      if (idx === null) return;
+      const slot = slots[idx];
+      if (!slot || slot.kind === 'empty') return;
+      onChange(stampSlotIntoDraft(value, idx, slot, row, col));
+      return;
+    }
+    // draft
+    const src = getDraftDrag(ev);
+    if (!src || src === id || !onDraftDrop) return;
+    onDraftDrop(src, row, col);
   }
 
-  function handleMatrixDragOver(ev: ReactDragEvent) {
-    if (!isSlotDrag(ev)) return;
-    ev.preventDefault();
-    ev.dataTransfer.dropEffect = 'copy';
-    if (!dropTarget) setDropTarget('matrix');
-  }
-
-  function handleMatrixDrop(ev: ReactDragEvent) {
-    if (!isSlotDrag(ev)) return;
-    ev.preventDefault();
-    setDropTarget(null);
-    const idx = getSlotDrag(ev);
-    if (idx === null) return;
-    const slot = slots[idx];
-    if (!slot || slot.kind === 'empty') return;
-    onChange(stampSlotIntoDraft(value, idx, slot, 0, 0));
+  function handleHandleDragStart(ev: ReactDragEvent) {
+    setDraftDrag(ev, id);
   }
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-4">
-        <span className="font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em]">
+        <span
+          draggable
+          onDragStart={handleHandleDragStart}
+          className="inline-flex items-center gap-2 font-mono text-[0.75rem] text-[#a0a0aa] uppercase tracking-[0.08em] cursor-grab active:cursor-grabbing select-none hover:text-accent transition-colors"
+          title={`drag ${label} onto a slot or onto the other matrix`}
+        >
+          <span aria-hidden="true" className="text-accent/70">⋮⋮</span>
           {label}
         </span>
         <div className="flex items-center gap-3 font-mono text-[0.75rem] text-text-secondary">
@@ -111,9 +133,9 @@ export default function MatrixEditor({
         </div>
       </div>
       <div
-        onDragOver={handleMatrixDragOver}
+        onDragOver={(e) => handleDragOver(e, 'matrix')}
         onDragLeave={() => setDropTarget(null)}
-        onDrop={handleMatrixDrop}
+        onDrop={(e) => handleDrop(e, 0, 0, false)}
         className={`inline-grid gap-1.5 bg-[#0c0c12] border p-2 transition-colors duration-150 ${
           dropTarget === 'matrix' ? 'border-accent' : 'border-[#3a3a42]'
         }`}
@@ -123,9 +145,9 @@ export default function MatrixEditor({
           row.map((cell, j) => (
             <div
               key={`${i}-${j}`}
-              onDragOver={(e) => handleCellDragOver(e, i, j)}
+              onDragOver={(e) => handleDragOver(e, { row: i, col: j })}
               onDragLeave={() => setDropTarget(null)}
-              onDrop={(e) => handleCellDrop(e, i, j)}
+              onDrop={(e) => handleDrop(e, i, j, true)}
               className={`relative transition-colors duration-150 ${
                 dropTarget &&
                 dropTarget !== 'matrix' &&
@@ -148,7 +170,7 @@ export default function MatrixEditor({
       </div>
       <p className="font-mono text-[0.7rem] text-text-secondary/70 leading-relaxed">
         Integers, <span className="text-accent">S0…S9</span>, <span className="text-accent">S0[i,j]</span>,
-        or drop a slot from the bank below.
+        or drop a slot / matrix here.
       </p>
     </div>
   );

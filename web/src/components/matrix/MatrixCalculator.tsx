@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useReducer, useState } from 'react';
 import type { MatrixDraft, OpResponse, SlotBank, SlotValue } from './types';
-import { atomToSlotValue, emptyDraft, resolveMatrix } from './resolve';
+import { atomToSlotValue, emptyDraft, resolveMatrix, stampDraftIntoDraft } from './resolve';
 import { getOp, type OperationKind } from './operations';
+import type { DraftSource } from './drag';
 import MatrixEditor from './MatrixEditor';
 import OperationSelector from './OperationSelector';
 import ResultPanel from './ResultPanel';
@@ -36,6 +37,7 @@ type Action =
   | { type: 'setError'; value: string | null }
   | { type: 'setSlot'; index: number; value: SlotValue }
   | { type: 'clearSlot'; index: number }
+  | { type: 'swapAB' }
   | { type: 'reset' };
 
 const initialSlots: SlotBank = Array.from({ length: 10 }, () => ({ kind: 'empty' as const }));
@@ -88,6 +90,8 @@ function reducer(state: State, action: Action): State {
       slots[action.index] = { kind: 'empty' };
       return { ...state, slots };
     }
+    case 'swapAB':
+      return { ...state, a: state.b, b: state.a };
     case 'reset':
       return { ...initialState(), n: state.n };
     default:
@@ -123,6 +127,44 @@ export default function MatrixCalculator() {
       if (savableResult) dispatch({ type: 'setSlot', index, value: savableResult });
     },
     [savableResult],
+  );
+
+  const handleDraftCrossDrop = useCallback(
+    (target: DraftSource, from: DraftSource, row: number, col: number) => {
+      if (from === target) return;
+      const src = from === 'A' ? state.a : state.b;
+      const dst = target === 'A' ? state.a : state.b;
+      const next = stampDraftIntoDraft(dst, src, row, col);
+      dispatch({ type: target === 'A' ? 'setA' : 'setB', draft: next });
+    },
+    [state.a, state.b],
+  );
+
+  const handleSaveDraft = useCallback(
+    (index: number, source: DraftSource) => {
+      const draft = source === 'A' ? state.a : state.b;
+      try {
+        const resolved = resolveMatrix(draft, state.slots);
+        dispatch({
+          type: 'setSlot',
+          index,
+          value: {
+            kind: 'matrix',
+            rows: resolved.rows,
+            cols: resolved.cols,
+            data: resolved.data,
+          },
+        });
+      } catch (e) {
+        dispatch({
+          type: 'setError',
+          value: `Cannot save matrix ${source} to S${index}: ${
+            e instanceof Error ? e.message : String(e)
+          }`,
+        });
+      }
+    },
+    [state.a, state.b, state.slots],
   );
 
   function run() {
@@ -186,24 +228,41 @@ export default function MatrixCalculator() {
       </div>
 
       {/* Operands + operation */}
-      <div className="grid grid-cols-[1fr_1fr_auto] max-md:grid-cols-1 gap-6 items-start">
+      <div className="grid grid-cols-[1fr_auto_1fr_auto] max-md:grid-cols-1 gap-6 items-start">
         <MatrixEditor
+          id="A"
           label="Matrix A"
           value={state.a}
           onChange={(draft) => dispatch({ type: 'setA', draft })}
+          onDraftDrop={(from, r, c) => handleDraftCrossDrop('A', from, r, c)}
           slots={state.slots}
         />
+        <div className="flex items-center justify-center max-md:justify-start">
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'swapAB' })}
+            disabled={!op.needsB}
+            title="Swap A ↔ B (operations are not commutative)"
+            className="font-mono text-[0.75rem] uppercase tracking-[0.1em] text-text-secondary hover:text-accent disabled:opacity-20 disabled:cursor-not-allowed border border-[#3a3a42] hover:border-accent px-3 py-2 transition-colors max-md:self-center"
+            aria-label="swap A and B"
+          >
+            A ↔ B
+          </button>
+        </div>
         {op.needsB ? (
           <MatrixEditor
+            id="B"
             label={op.bIsVector ? 'Vector b' : 'Matrix B'}
             value={state.b}
             onChange={(draft) => dispatch({ type: 'setB', draft })}
+            onDraftDrop={(from, r, c) => handleDraftCrossDrop('B', from, r, c)}
             slots={state.slots}
             lockCols={op.bIsVector ? 1 : undefined}
           />
         ) : (
           <div className="opacity-30 pointer-events-none select-none">
             <MatrixEditor
+              id="B"
               label="—"
               value={state.b}
               onChange={() => {}}
@@ -282,6 +341,7 @@ export default function MatrixCalculator() {
         onInspect={(i) => setInspecting(i)}
         hasResult={savableResult !== null}
         onSaveResult={handleSaveResult}
+        onSaveDraft={handleSaveDraft}
       />
       {inspecting !== null && (
         <SlotInspector

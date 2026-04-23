@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { DragEvent as ReactDragEvent } from 'react';
 import type { SlotBank, SlotValue } from './types';
-import { isResultDrag, setSlotDrag } from './drag';
+import { getDraftDrag, isDraftDrag, isResultDrag, setSlotDrag, type DraftSource } from './drag';
 
 type Props = {
   slots: SlotBank;
@@ -11,6 +11,8 @@ type Props = {
   hasResult: boolean;
   /** Invoked when the user drops the current result onto slot `index`. */
   onSaveResult: (index: number) => void;
+  /** Invoked when the user drops matrix A or B onto slot `index`. */
+  onSaveDraft: (index: number, source: DraftSource) => void;
 };
 
 export default function SlotBankView({
@@ -19,6 +21,7 @@ export default function SlotBankView({
   onInspect,
   hasResult,
   onSaveResult,
+  onSaveDraft,
 }: Props) {
   return (
     <div className="flex flex-col gap-2">
@@ -27,7 +30,7 @@ export default function SlotBankView({
           Slots
         </span>
         <span className="font-mono text-[0.7rem] text-text-secondary/70">
-          drag a tile into a matrix cell · drop the result here to save
+          drag a tile into a matrix cell · drop a matrix or the result here to save
         </span>
       </div>
       <div className="grid grid-cols-5 max-md:grid-cols-2 gap-2">
@@ -40,6 +43,7 @@ export default function SlotBankView({
             onInspect={onInspect ? () => onInspect(i) : undefined}
             hasResult={hasResult}
             onSaveResult={() => onSaveResult(i)}
+            onSaveDraft={(source) => onSaveDraft(i, source)}
           />
         ))}
       </div>
@@ -54,6 +58,7 @@ function SlotTile({
   onInspect,
   hasResult,
   onSaveResult,
+  onSaveDraft,
 }: {
   index: number;
   value: SlotValue;
@@ -61,8 +66,9 @@ function SlotTile({
   onInspect?: () => void;
   hasResult: boolean;
   onSaveResult: () => void;
+  onSaveDraft: (source: DraftSource) => void;
 }) {
-  const [acceptingResult, setAcceptingResult] = useState(false);
+  const [accepting, setAccepting] = useState(false);
   const isEmpty = value.kind === 'empty';
   const isSquare = value.kind === 'matrix' && value.rows === value.cols;
   const draggable = !isEmpty;
@@ -76,64 +82,85 @@ function SlotTile({
   }
 
   function handleDragOver(ev: ReactDragEvent) {
-    if (!hasResult || !isResultDrag(ev)) return;
+    const acceptsResult = hasResult && isResultDrag(ev);
+    const acceptsDraft = isDraftDrag(ev);
+    if (!acceptsResult && !acceptsDraft) return;
     ev.preventDefault();
     ev.dataTransfer.dropEffect = 'copy';
-    setAcceptingResult(true);
+    setAccepting(true);
   }
 
   function handleDrop(ev: ReactDragEvent) {
-    if (!hasResult || !isResultDrag(ev)) return;
-    ev.preventDefault();
-    setAcceptingResult(false);
-    onSaveResult();
+    if (hasResult && isResultDrag(ev)) {
+      ev.preventDefault();
+      setAccepting(false);
+      onSaveResult();
+      return;
+    }
+    if (isDraftDrag(ev)) {
+      const src = getDraftDrag(ev);
+      if (!src) return;
+      ev.preventDefault();
+      setAccepting(false);
+      onSaveDraft(src);
+      return;
+    }
+  }
+
+  const hint = isEmpty
+    ? hasResult
+      ? 'drop result / A / B here'
+      : 'drop A or B here'
+    : null;
+
+  function handleTileClick() {
+    if (!isEmpty && onInspect) onInspect();
+  }
+
+  function handleTileKey(ev: React.KeyboardEvent) {
+    if (isEmpty || !onInspect) return;
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      onInspect();
+    }
   }
 
   return (
     <div
       draggable={draggable}
+      role={!isEmpty ? 'button' : undefined}
+      tabIndex={!isEmpty ? 0 : undefined}
+      aria-label={!isEmpty ? `inspect slot S${index}` : undefined}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
-      onDragLeave={() => setAcceptingResult(false)}
+      onDragLeave={() => setAccepting(false)}
       onDrop={handleDrop}
+      onClick={handleTileClick}
+      onKeyDown={handleTileKey}
       className={`group relative p-2.5 border transition-colors duration-200 select-none ${
         isEmpty
           ? 'border-dashed border-[#3a3a42]/60'
-          : `border-[#3a3a42] bg-[#0c0c12] ${
-              draggable ? 'cursor-grab active:cursor-grabbing hover:border-accent' : ''
-            }`
-      } ${acceptingResult ? 'ring-2 ring-accent bg-accent/5' : ''}`}
+          : `border-[#3a3a42] bg-[#0c0c12] cursor-grab active:cursor-grabbing hover:border-accent focus:outline-none focus:border-accent`
+      } ${accepting ? 'ring-2 ring-accent bg-accent/5' : ''}`}
     >
       <div className="flex items-center justify-between mb-1">
         <span className="font-mono text-[0.75rem] font-semibold text-accent">S{index}</span>
         {!isEmpty && (
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {onInspect && (
-              <button
-                type="button"
-                onClick={onInspect}
-                className="font-mono text-[0.65rem] text-text-secondary hover:text-accent"
-                aria-label={`inspect S${index}`}
-              >
-                view
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={onClear}
-              className="font-mono text-[0.65rem] text-text-secondary hover:text-red-400"
-              aria-label={`clear S${index}`}
-            >
-              ×
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClear();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="opacity-0 group-hover:opacity-100 font-mono text-[0.65rem] text-text-secondary hover:text-red-400 transition-opacity"
+            aria-label={`clear S${index}`}
+          >
+            ×
+          </button>
         )}
       </div>
-      {value.kind === 'empty' && (
-        <span className="font-mono text-[0.7rem] text-text-secondary/40">
-          {hasResult ? 'drop result here' : 'empty'}
-        </span>
-      )}
+      {hint && <span className="font-mono text-[0.7rem] text-text-secondary/40">{hint}</span>}
       {value.kind === 'scalar' && (
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-[0.7rem] text-text-secondary">scalar</span>
