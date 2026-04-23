@@ -109,67 +109,58 @@ export function atomToSlotValue(atom: Atom): SlotValue | null {
 /** Maximum dimension enforced by the matrix editor. Keep in sync with MatrixEditor. */
 export const MAX_DIM = 6;
 
+/** How many slots the workspace exposes. References Sk accept k in 0..SLOT_COUNT-1. */
+export const SLOT_COUNT = 5;
+
 /**
- * Build a new draft by stamping `src` cells into `dst` with the given
- * (anchorRow, anchorCol) as top-left. Cell strings are copied verbatim, so any
- * `Sk` / `Sk[i,j]` references inside `src` are preserved. The destination is
- * auto-resized up to MAX_DIM; overflow is clamped.
+ * Kernel stamp: writes the numeric `data` into `dst` starting at (anchorRow,
+ * anchorCol). Auto-resizes up to MAX_DIM; overflow is silently clamped. Values
+ * are stored as plain integer strings — no Sk / Sk[i,j] references.
  */
-export function stampDraftIntoDraft(
+export function stampValuesIntoDraft(
   dst: MatrixDraft,
-  src: MatrixDraft,
+  srcRows: number,
+  srcCols: number,
+  data: number[][],
   anchorRow: number,
   anchorCol: number,
 ): MatrixDraft {
-  const targetRows = Math.min(MAX_DIM, Math.max(dst.rows, anchorRow + src.rows));
-  const targetCols = Math.min(MAX_DIM, Math.max(dst.cols, anchorCol + src.cols));
+  const targetRows = Math.min(MAX_DIM, Math.max(dst.rows, anchorRow + srcRows));
+  const targetCols = Math.min(MAX_DIM, Math.max(dst.cols, anchorCol + srcCols));
   const resized = resizeDraft(dst, targetRows, targetCols);
   const cells = resized.cells.map((row) => row.slice());
-  for (let i = 0; i < src.rows; i++) {
-    for (let j = 0; j < src.cols; j++) {
+  for (let i = 0; i < srcRows; i++) {
+    for (let j = 0; j < srcCols; j++) {
       const r = anchorRow + i;
       const c = anchorCol + j;
       if (r >= targetRows || c >= targetCols) continue;
-      cells[r][c] = src.cells[i][j] ?? '0';
+      cells[r][c] = String(data[i][j]);
     }
   }
   return { rows: targetRows, cols: targetCols, cells };
 }
 
-/**
- * Build a new draft by stamping a slot's contents into `draft` with the given
- * (anchorRow, anchorCol) as top-left. Stored references keep the link to the slot:
- *   - scalar slot → `Sk`
- *   - matrix slot → `Sk[i,j]`
- * The draft is auto-resized up to MAX_DIM; overflow is clamped (cells outside the
- * clamped region are silently dropped).
- */
+/** Stamp a slot's current value into a draft, as numeric literals. */
 export function stampSlotIntoDraft(
   draft: MatrixDraft,
-  slotIdx: number,
   slot: SlotValue,
   anchorRow: number,
   anchorCol: number,
 ): MatrixDraft {
   if (slot.kind === 'empty') return draft;
-
-  const payloadRows = slot.kind === 'scalar' ? 1 : slot.rows;
-  const payloadCols = slot.kind === 'scalar' ? 1 : slot.cols;
-
-  const targetRows = Math.min(MAX_DIM, Math.max(draft.rows, anchorRow + payloadRows));
-  const targetCols = Math.min(MAX_DIM, Math.max(draft.cols, anchorCol + payloadCols));
-
-  const resized = resizeDraft(draft, targetRows, targetCols);
-  const cells = resized.cells.map((row) => row.slice());
-
-  for (let i = 0; i < payloadRows; i++) {
-    for (let j = 0; j < payloadCols; j++) {
-      const r = anchorRow + i;
-      const c = anchorCol + j;
-      if (r >= targetRows || c >= targetCols) continue;
-      cells[r][c] = slot.kind === 'scalar' ? `S${slotIdx}` : `S${slotIdx}[${i},${j}]`;
-    }
+  if (slot.kind === 'scalar') {
+    return stampValuesIntoDraft(draft, 1, 1, [[slot.value]], anchorRow, anchorCol);
   }
-  return { rows: targetRows, cols: targetCols, cells };
+  return stampValuesIntoDraft(draft, slot.rows, slot.cols, slot.data, anchorRow, anchorCol);
+}
+
+/** Extract a plain {rows, cols, data} from an atom, or null if not stampable. */
+export function atomToValues(
+  atom: Atom,
+): { rows: number; cols: number; data: number[][] } | null {
+  if (atom.type === 'scalar') return { rows: 1, cols: 1, data: [[atom.value]] };
+  if (atom.type === 'matrix') return { rows: atom.rows, cols: atom.cols, data: atom.data };
+  if (atom.type === 'rref') return { rows: atom.rows, cols: atom.cols, data: atom.data };
+  return null;
 }
 

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import type { DragEvent as ReactDragEvent } from 'react';
-import type { MatrixDraft, SlotBank } from './types';
-import { resizeDraft, stampDraftIntoDraft, stampSlotIntoDraft } from './resolve';
+import type { MatrixDraft } from './types';
+import { resizeDraft } from './resolve';
 import {
   getDraftDrag,
   getSlotDrag,
   isDraftDrag,
+  isResultDrag,
   isSlotDrag,
   setDraftDrag,
   type DraftSource,
@@ -17,12 +18,12 @@ type Props = {
   label: string;
   value: MatrixDraft;
   onChange: (next: MatrixDraft) => void;
-  slots: SlotBank;
-  /**
-   * Invoked when the user drops another matrix (the sibling editor) onto this one.
-   * `fromSource` is the identifier of the dragged editor, never equal to `id`.
-   */
+  /** Called when a slot tile is dropped onto this editor. */
+  onSlotDrop?: (slotIdx: number, anchorRow: number, anchorCol: number) => void;
+  /** Called when the sibling matrix is dropped onto this editor. */
   onDraftDrop?: (fromSource: DraftSource, anchorRow: number, anchorCol: number) => void;
+  /** Called when the current result is dropped onto this editor. */
+  onResultDrop?: (anchorRow: number, anchorCol: number) => void;
   minRows?: number;
   minCols?: number;
   maxRows?: number;
@@ -40,8 +41,9 @@ export default function MatrixEditor({
   label,
   value,
   onChange,
-  slots,
+  onSlotDrop,
   onDraftDrop,
+  onResultDrop,
   minRows = MIN,
   minCols = MIN,
   maxRows = MAX,
@@ -64,9 +66,11 @@ export default function MatrixEditor({
     onChange({ ...value, cells });
   }
 
-  function accepts(ev: ReactDragEvent): 'slot' | 'draft' | null {
-    if (isSlotDrag(ev)) return 'slot';
+  type Kind = 'slot' | 'draft' | 'result';
+  function accepts(ev: ReactDragEvent): Kind | null {
+    if (isSlotDrag(ev) && onSlotDrop) return 'slot';
     if (isDraftDrag(ev) && onDraftDrop) return 'draft';
+    if (isResultDrag(ev) && onResultDrop) return 'result';
     return null;
   }
 
@@ -86,15 +90,14 @@ export default function MatrixEditor({
     if (kind === 'slot') {
       const idx = getSlotDrag(ev);
       if (idx === null) return;
-      const slot = slots[idx];
-      if (!slot || slot.kind === 'empty') return;
-      onChange(stampSlotIntoDraft(value, idx, slot, row, col));
-      return;
+      onSlotDrop?.(idx, row, col);
+    } else if (kind === 'draft') {
+      const src = getDraftDrag(ev);
+      if (!src || src === id) return;
+      onDraftDrop?.(src, row, col);
+    } else if (kind === 'result') {
+      onResultDrop?.(row, col);
     }
-    // draft
-    const src = getDraftDrag(ev);
-    if (!src || src === id || !onDraftDrop) return;
-    onDraftDrop(src, row, col);
   }
 
   function handleHandleDragStart(ev: ReactDragEvent) {
@@ -169,8 +172,8 @@ export default function MatrixEditor({
         )}
       </div>
       <p className="font-mono text-[0.7rem] text-text-secondary/70 leading-relaxed">
-        Integers, <span className="text-accent">S0…S9</span>, <span className="text-accent">S0[i,j]</span>,
-        or drop a slot / matrix here.
+        Integers, <span className="text-accent">S0…S4</span>, <span className="text-accent">S0[i,j]</span>,
+        or drop a slot / matrix / result here.
       </p>
     </div>
   );

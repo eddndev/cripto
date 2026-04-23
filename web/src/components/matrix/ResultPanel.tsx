@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { DragEvent as ReactDragEvent } from 'react';
 import type { Atom, OpResponse, SlotValue } from './types';
-import { atomToSlotValue } from './resolve';
+import { atomToSlotValue, SLOT_COUNT } from './resolve';
 import { setResultDrag } from './drag';
 import MatrixGrid from './MatrixGrid';
 
@@ -57,7 +57,7 @@ export default function ResultPanel({ response, onSave }: Props) {
                 onChange={(e) => setSlotIdx(parseInt(e.target.value, 10))}
                 className="bg-[#13131a] border border-[#3a3a42] px-2 py-1 font-mono text-[0.75rem]"
               >
-                {Array.from({ length: 10 }).map((_, i) => (
+                {Array.from({ length: SLOT_COUNT }).map((_, i) => (
                   <option key={i} value={i}>
                     S{i}
                   </option>
