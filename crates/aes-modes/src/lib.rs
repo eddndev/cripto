@@ -414,22 +414,52 @@ pub fn process(
     serde_wasm_bindgen::to_value(&out).map_err(err)
 }
 
-// ---- image-container mode --------------------------------------------------
+// ---- BMP image-container mode ---------------------------------------------
 //
-// Length-preserving variant: encrypt only the pixel body of a BMP file so the
-// header stays valid and the result still renders as an image. For ECB/CBC the
-// trailing <16 bytes of the body are passed through untouched (no PKCS#7);
-// CFB/OFB/CTR are naturally length-preserving.
+// Length-preserving variant: encrypt only the **actual pixel bytes** of a 24-bit
+// BMP (skipping per-row 4-byte padding) so every byte of the BMP container —
+// magic, file header, DIB header, row padding — is preserved verbatim. ECB/CBC
+// pass the trailing <16-byte tail through unchanged; CFB/OFB/CTR are naturally
+// length-preserving. This mirrors the convention used by the stego practice.
 
-fn detect_bmp(data: &[u8]) -> Result<usize, JsValue> {
-    if data.len() < 14 || &data[0..2] != b"BM" {
-        return Err(err("not a BMP file (missing 'BM' magic)"));
+struct BmpInfo {
+    pixel_offset: usize,
+    width: u32,
+    height: u32,
+}
+
+fn parse_bmp(data: &[u8]) -> Result<BmpInfo, JsValue> {
+    if data.len() < 54 {
+        return Err(err("File too small to be a valid BMP"));
     }
-    let off = u32::from_le_bytes([data[10], data[11], data[12], data[13]]) as usize;
-    if off < 14 || off > data.len() {
-        return Err(err("BMP header points past end of file"));
+    if data[0] != b'B' || data[1] != b'M' {
+        return Err(err("Not a BMP file (missing BM signature)"));
     }
-    Ok(off)
+    let pixel_offset = u32::from_le_bytes([data[10], data[11], data[12], data[13]]) as usize;
+    let width = u32::from_le_bytes([data[18], data[19], data[20], data[21]]);
+    let height_raw = i32::from_le_bytes([data[22], data[23], data[24], data[25]]);
+    let height = height_raw.unsigned_abs();
+    let bpp = u16::from_le_bytes([data[28], data[29]]);
+    if bpp != 24 {
+        return Err(err(format!("Only 24-bit BMP supported, got {bpp}-bit")));
+    }
+    if pixel_offset >= data.len() {
+        return Err(err("Invalid pixel data offset"));
+    }
+    Ok(BmpInfo { pixel_offset, width, height })
+}
+
+fn usable_byte_indices(info: &BmpInfo) -> Vec<usize> {
+    let row_data = info.width as usize * 3;
+    let row_stride = (row_data + 3) & !3;
+    let mut indices = Vec::with_capacity(row_data * info.height as usize);
+    for row in 0..info.height as usize {
+        let row_start = info.pixel_offset + row * row_stride;
+        for col in 0..row_data {
+            indices.push(row_start + col);
+        }
+    }
+    indices
 }
 
 fn process_body_no_pad(
@@ -526,24 +556,28 @@ pub fn process_image(
         _ => return Err(err("direction must be encrypt|decrypt")),
     };
 
-    let header_len = detect_bmp(data)?;
-    let body = &data[header_len..];
-    let body_len = body.len();
+    let bmp = parse_bmp(data)?;
+    let indices = usable_byte_indices(&bmp);
+    let pixel_bytes: Vec<u8> = indices.iter().map(|&i| data[i]).collect();
+    let body_len = pixel_bytes.len();
     let tail_len = body_len % BLOCK;
 
     let mut trace: Vec<BlockTrace> = Vec::new();
-    let processed = process_body_no_pad(&cipher, mode, &iv_arr, body, encrypt, &mut trace)?;
+    let processed = process_body_no_pad(&cipher, mode, &iv_arr, &pixel_bytes, encrypt, &mut trace)?;
 
-    let mut out = Vec::with_capacity(data.len());
-    out.extend_from_slice(&data[..header_len]);
-    out.extend_from_slice(&processed);
+    let mut out = data.to_vec();
+    for (i, &b) in processed.iter().enumerate() {
+        out[indices[i]] = b;
+    }
 
     let blocks_total = trace.len();
     let (trace, truncated) = pack_trace(trace);
 
     let info = format!(
-        "BMP — header {} B, pixel body {} B{}",
-        header_len,
+        "BMP {}×{} — header {} B, pixel bytes {}{}",
+        bmp.width,
+        bmp.height,
+        bmp.pixel_offset,
         body_len,
         if (mode == "ECB" || mode == "CBC") && tail_len > 0 {
             format!(" ({} trailing byte{} unchanged — kept length aligned)", tail_len, if tail_len == 1 { "" } else { "s" })
