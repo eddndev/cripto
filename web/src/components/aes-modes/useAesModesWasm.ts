@@ -104,12 +104,25 @@ export function useAesModesWasm(): AesApi {
     },
     process(direction, mode, key, iv, data) {
       if (!modRef.current) throw new Error('WASM not loaded');
-      return modRef.current.process(direction, mode, key, iv, data);
+      return coerceProcessOut(modRef.current.process(direction, mode, key, iv, data));
     },
     processImage(direction, mode, key, iv, data) {
       if (!modRef.current) throw new Error('WASM not loaded');
-      return modRef.current.process_image(direction, mode, key, iv, data);
+      return coerceProcessOut(modRef.current.process_image(direction, mode, key, iv, data));
     },
+  };
+}
+
+// serde_wasm_bindgen serializes Vec<u8> as a JS Array<number>, NOT a Uint8Array.
+// Wrapping an Array in new Blob([…]) coerces via toString() → comma-joined ASCII →
+// "text/plain" garbage on disk. Force Uint8Array here so download() writes bytes.
+function coerceProcessOut(raw: ProcessOut): ProcessOut {
+  return {
+    ...raw,
+    ciphertext:
+      raw.ciphertext instanceof Uint8Array
+        ? raw.ciphertext
+        : new Uint8Array(raw.ciphertext as unknown as ArrayLike<number>),
   };
 }
 

@@ -671,6 +671,76 @@ mod tests {
         assert_eq!(got, exp);
     }
 
+    /// Synthesize a minimal 24-bit BMP with the same layout the stego crate
+    /// uses, so we can run process_image natively and verify the output.
+    fn make_bmp(width: u32, height: u32) -> Vec<u8> {
+        let row_data = width as usize * 3;
+        let row_stride = (row_data + 3) & !3;
+        let pixel_data_size = row_stride * height as usize;
+        let file_size = 54 + pixel_data_size;
+        let mut data = vec![0u8; file_size];
+        data[0] = b'B';
+        data[1] = b'M';
+        data[2..6].copy_from_slice(&(file_size as u32).to_le_bytes());
+        data[10..14].copy_from_slice(&54u32.to_le_bytes());
+        data[14..18].copy_from_slice(&40u32.to_le_bytes());
+        data[18..22].copy_from_slice(&width.to_le_bytes());
+        data[22..26].copy_from_slice(&(height as i32).to_le_bytes());
+        data[26..28].copy_from_slice(&1u16.to_le_bytes());
+        data[28..30].copy_from_slice(&24u16.to_le_bytes());
+        for i in 54..data.len() {
+            data[i] = ((i - 54) & 0xff) as u8;
+        }
+        data
+    }
+
+    fn run_image(direction: &str, mode: &str, key: &[u8; 16], iv: &[u8; 16], data: &[u8]) -> Vec<u8> {
+        let cipher = Aes128::new(&aes::cipher::generic_array::GenericArray::clone_from_slice(key));
+        let bmp = parse_bmp(data).unwrap();
+        let indices = usable_byte_indices(&bmp);
+        let pixels: Vec<u8> = indices.iter().map(|&i| data[i]).collect();
+        let mut trace = Vec::new();
+        let encrypt = direction == "encrypt";
+        let processed =
+            process_body_no_pad(&cipher, mode, iv, &pixels, encrypt, &mut trace).unwrap();
+        let mut out = data.to_vec();
+        for (i, &b) in processed.iter().enumerate() {
+            out[indices[i]] = b;
+        }
+        out
+    }
+
+    #[test]
+    fn process_image_preserves_bmp_header_all_modes() {
+        let bmp = make_bmp(13, 7); // 13×3=39 row bytes → 40 with padding, padding > 0
+        let key = [0x11u8; 16];
+        let iv = [0x22u8; 16];
+        for mode in ["ECB", "CBC", "CFB", "OFB", "CTR"] {
+            let enc = run_image("encrypt", mode, &key, &iv, &bmp);
+            // 1) Same length.
+            assert_eq!(enc.len(), bmp.len(), "{mode}: length must be preserved");
+            // 2) BM magic intact.
+            assert_eq!(&enc[0..2], b"BM", "{mode}: BM magic lost");
+            // 3) Full 54-byte header intact.
+            assert_eq!(&enc[0..54], &bmp[0..54], "{mode}: header bytes changed");
+            // 4) Per-row 1-byte padding is preserved (must equal the original).
+            //    Row stride is 40, row_data is 39, so byte at offset 54+row*40+39 is padding.
+            for row in 0..7 {
+                let pad_byte = 54 + row * 40 + 39;
+                assert_eq!(
+                    enc[pad_byte], bmp[pad_byte],
+                    "{mode}: row {row} padding byte at {pad_byte} changed"
+                );
+            }
+            // 5) Pixel bytes actually changed (not no-op).
+            let pixel_bytes_changed = enc.iter().zip(bmp.iter()).filter(|(a, b)| a != b).count();
+            assert!(pixel_bytes_changed > 0, "{mode}: nothing was encrypted");
+            // 6) Round-trip back to plaintext.
+            let back = run_image("decrypt", mode, &key, &iv, &enc);
+            assert_eq!(back, bmp, "{mode}: round-trip failed");
+        }
+    }
+
     #[test]
     fn pbkdf2_known_vector() {
         // RFC 6070-style but with SHA256 — we just check determinism + length.
