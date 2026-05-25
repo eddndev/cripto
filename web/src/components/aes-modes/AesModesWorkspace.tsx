@@ -32,9 +32,11 @@ const T = {
     fileLabel: 'Input file',
     pickFile: 'Pick a file…',
     chosen: 'Selected',
-    imageMode: 'Preserve image container (BMP only)',
-    imageHint: 'Encrypts only the pixel body — the BMP header stays intact so the result still renders as an image (the classic "ECB penguin" demo).',
+    imageMode: 'Preserve image container (BMP)',
+    imageHint: 'Encrypts only the pixel body — the BMP header stays intact so the result still renders as an image (the classic "ECB penguin" demo). Other image formats (PNG, JPG, WebP…) are auto-converted to BMP on upload so the demo works on any image.',
     imageInfo: 'Image',
+    converted: 'Auto-converted to BMP',
+    converting: 'Converting to BMP…',
     previewIn: 'Original',
     previewOut: 'Processed',
     run: 'Run',
@@ -78,9 +80,11 @@ const T = {
     fileLabel: 'Archivo de entrada',
     pickFile: 'Elegir archivo…',
     chosen: 'Seleccionado',
-    imageMode: 'Preservar contenedor de imagen (solo BMP)',
-    imageHint: 'Cifra solo el cuerpo de píxeles — el header BMP queda intacto, así el resultado se sigue viendo como imagen (el clásico demo del "pingüino ECB").',
+    imageMode: 'Preservar contenedor de imagen (BMP)',
+    imageHint: 'Cifra solo el cuerpo de píxeles — el header BMP queda intacto, así el resultado se sigue viendo como imagen (el clásico demo del "pingüino ECB"). Otros formatos (PNG, JPG, WebP…) se auto-convierten a BMP al subirlos para que la demo funcione con cualquier imagen.',
     imageInfo: 'Imagen',
+    converted: 'Convertido automáticamente a BMP',
+    converting: 'Convirtiendo a BMP…',
     previewIn: 'Original',
     previewOut: 'Resultado',
     run: 'Ejecutar',
@@ -102,6 +106,78 @@ const T = {
     ellipsis: '…',
   },
 } as const;
+
+/** Encode an ImageData (RGBA, top-down) as a 24-bit BMP file. */
+function imageDataToBmp(img: ImageData): Uint8Array {
+  const { width, height, data } = img;
+  const rowSize = ((24 * width + 31) >> 5) * 4; // padded to 4 bytes
+  const pixelDataSize = rowSize * height;
+  const fileSize = 54 + pixelDataSize;
+  const bmp = new Uint8Array(fileSize);
+  const view = new DataView(bmp.buffer);
+  // BITMAPFILEHEADER
+  bmp[0] = 0x42; bmp[1] = 0x4d; // 'BM'
+  view.setUint32(2, fileSize, true);
+  view.setUint32(6, 0, true);
+  view.setUint32(10, 54, true); // bfOffBits
+  // BITMAPINFOHEADER
+  view.setUint32(14, 40, true);
+  view.setInt32(18, width, true);
+  view.setInt32(22, -height, true); // negative height → top-down
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 24, true);
+  view.setUint32(30, 0, true); // BI_RGB
+  view.setUint32(34, pixelDataSize, true);
+  // pixels: BGR, top-down (matches negative height)
+  for (let y = 0; y < height; y++) {
+    const rowOffset = 54 + y * rowSize;
+    const srcRow = y * width * 4;
+    for (let x = 0; x < width; x++) {
+      const s = srcRow + x * 4;
+      const d = rowOffset + x * 3;
+      bmp[d] = data[s + 2];
+      bmp[d + 1] = data[s + 1];
+      bmp[d + 2] = data[s];
+    }
+  }
+  return bmp;
+}
+
+async function isBmpByMagic(file: File): Promise<boolean> {
+  if (file.size < 2) return false;
+  const head = new Uint8Array(await file.slice(0, 2).arrayBuffer());
+  return head[0] === 0x42 && head[1] === 0x4d; // 'BM'
+}
+
+async function convertToBmp(file: File): Promise<File> {
+  if (await isBmpByMagic(file)) return file;
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error('Failed to decode image'));
+      i.src = url;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas 2D context unavailable');
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const bmp = imageDataToBmp(data);
+    const base = file.name.replace(/\.[^.]+$/, '');
+    return new File([bmp], `${base}.bmp`, { type: 'image/bmp' });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function isImageFile(f: File): boolean {
+  if (f.type.startsWith('image/')) return true;
+  return /\.(bmp|png|jpe?g|gif|webp|avif|tiff?)$/i.test(f.name);
+}
 
 function download(filename: string, data: Uint8Array) {
   const url = URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }));
@@ -130,6 +206,8 @@ export default function AesModesWorkspace({ lang = 'en' as Lang }: { lang?: Lang
   const [ivHex, setIvHex] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [imageMode, setImageMode] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [wasConverted, setWasConverted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ProcessOut | null>(null);
@@ -320,17 +398,53 @@ export default function AesModesWorkspace({ lang = 'en' as Lang }: { lang?: Lang
             <input
               type="file"
               className="hidden"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const f = e.target.files?.[0] ?? null;
-                setFile(f);
-                if (f && /\.bmp$/i.test(f.name)) setImageMode(true);
+                setError(null);
+                setResult(null);
+                setWasConverted(false);
+                if (!f) {
+                  setFile(null);
+                  return;
+                }
+                // Detect by magic bytes first — handles BMPs without .bmp extension.
+                const looksLikeBmp = await isBmpByMagic(f);
+                if (looksLikeBmp) {
+                  setFile(f);
+                  setImageMode(true);
+                  return;
+                }
+                if (isImageFile(f)) {
+                  setConverting(true);
+                  try {
+                    const bmp = await convertToBmp(f);
+                    setFile(bmp);
+                    setImageMode(true);
+                    setWasConverted(true);
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : String(err));
+                    setFile(f);
+                    setImageMode(false);
+                  } finally {
+                    setConverting(false);
+                  }
+                } else {
+                  setFile(f);
+                  setImageMode(false);
+                }
               }}
             />
           </label>
-          {file && (
+          {converting && (
+            <span className="font-mono text-[0.78rem] text-text-secondary">{t.converting}</span>
+          )}
+          {file && !converting && (
             <span className="font-mono text-[0.78rem] text-text-secondary">
               {t.chosen}: <span className="text-accent">{file.name}</span>{' '}
               <span>({file.size} B)</span>
+              {wasConverted && (
+                <span className="ml-2 text-[#a0a0aa]">— {t.converted}</span>
+              )}
             </span>
           )}
         </div>
