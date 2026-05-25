@@ -109,6 +109,19 @@ aligned, a full extra block of `0x10` bytes is added so the unpadding step is un
 CFB, OFB and CTR work on arbitrary byte lengths — the final partial block is XORed against
 the truncated keystream, no padding required.
 
+## The ECB penguin — image-container mode
+
+The workspace has a **"preserve image container (BMP only)"** toggle. When enabled, the
+file is parsed as a BMP: the first `bfOffBits` bytes (header + optional color table) are
+copied through untouched, and only the pixel array is encrypted. ECB/CBC switch to a
+**length-preserving** variant (no PKCS#7 — the last partial &lt;16-byte tail passes through
+as-is) so the byte count never changes and the resulting file is still a valid BMP.
+
+Encrypt a flat bitmap with **ECB** and the original silhouette leaks straight through the
+ciphertext — the classic *Tux* / *ECB penguin* image. Switch to **CBC**, **CFB**, **OFB**
+or **CTR** with a fresh IV and the same file turns into uniform noise. That visual
+contrast *is* the demo: ECB preserves structure, the other four hide it.
+
 ## File naming
 
 The workspace tags the output filename so a single artifact carries its own history:

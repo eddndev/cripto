@@ -66,6 +66,8 @@ struct ProcessOut {
     trace: Vec<BlockTrace>,
     /// Optional padding info (ECB/CBC) — hex of removed/added pad bytes.
     pad_info: Option<String>,
+    /// When image-container mode was used: format name + header length + tail length.
+    image_info: Option<String>,
 }
 
 const MAX_TRACE: usize = 12;
@@ -407,8 +409,158 @@ pub fn process(
         truncated,
         trace,
         pad_info,
+        image_info: None,
     };
     serde_wasm_bindgen::to_value(&out).map_err(err)
+}
+
+// ---- image-container mode --------------------------------------------------
+//
+// Length-preserving variant: encrypt only the pixel body of a BMP file so the
+// header stays valid and the result still renders as an image. For ECB/CBC the
+// trailing <16 bytes of the body are passed through untouched (no PKCS#7);
+// CFB/OFB/CTR are naturally length-preserving.
+
+fn detect_bmp(data: &[u8]) -> Result<usize, JsValue> {
+    if data.len() < 14 || &data[0..2] != b"BM" {
+        return Err(err("not a BMP file (missing 'BM' magic)"));
+    }
+    let off = u32::from_le_bytes([data[10], data[11], data[12], data[13]]) as usize;
+    if off < 14 || off > data.len() {
+        return Err(err("BMP header points past end of file"));
+    }
+    Ok(off)
+}
+
+fn process_body_no_pad(
+    cipher: &Aes128,
+    mode: &str,
+    iv: &[u8; BLOCK],
+    body: &[u8],
+    encrypt: bool,
+    trace: &mut Vec<BlockTrace>,
+) -> Result<Vec<u8>, JsValue> {
+    Ok(match mode {
+        "ECB" => {
+            // Process full blocks only; trailing partial is appended unchanged.
+            let full = (body.len() / BLOCK) * BLOCK;
+            let mut out = Vec::with_capacity(body.len());
+            for (i, chunk) in body[..full].chunks(BLOCK).enumerate() {
+                let p = parse_block(chunk);
+                let c = if encrypt { aes_enc(cipher, &p) } else { aes_dec(cipher, &p) };
+                trace.push(BlockTrace {
+                    index: i,
+                    input: to_hex(&p),
+                    aes_in: to_hex(&p),
+                    aes_out: to_hex(&c),
+                    xor_with: String::new(),
+                    output: to_hex(&c),
+                    counter: String::new(),
+                });
+                out.extend_from_slice(&c);
+            }
+            out.extend_from_slice(&body[full..]);
+            out
+        }
+        "CBC" => {
+            let full = (body.len() / BLOCK) * BLOCK;
+            let mut out = Vec::with_capacity(body.len());
+            let mut prev = *iv;
+            for (i, chunk) in body[..full].chunks(BLOCK).enumerate() {
+                let block = parse_block(chunk);
+                if encrypt {
+                    let x = xor16(&block, &prev);
+                    let c = aes_enc(cipher, &x);
+                    trace.push(BlockTrace {
+                        index: i,
+                        input: to_hex(&block),
+                        aes_in: to_hex(&x),
+                        aes_out: to_hex(&c),
+                        xor_with: to_hex(&prev),
+                        output: to_hex(&c),
+                        counter: String::new(),
+                    });
+                    out.extend_from_slice(&c);
+                    prev = c;
+                } else {
+                    let d = aes_dec(cipher, &block);
+                    let p = xor16(&d, &prev);
+                    trace.push(BlockTrace {
+                        index: i,
+                        input: to_hex(&block),
+                        aes_in: to_hex(&block),
+                        aes_out: to_hex(&d),
+                        xor_with: to_hex(&prev),
+                        output: to_hex(&p),
+                        counter: String::new(),
+                    });
+                    out.extend_from_slice(&p);
+                    prev = block;
+                }
+            }
+            out.extend_from_slice(&body[full..]);
+            out
+        }
+        "CFB" => process_cfb(cipher, iv, body, encrypt, trace),
+        "OFB" => process_ofb(cipher, iv, body, trace),
+        "CTR" => process_ctr(cipher, iv, body, trace),
+        m => return Err(err(format!("unknown mode {}", m))),
+    })
+}
+
+#[wasm_bindgen]
+pub fn process_image(
+    direction: &str,
+    mode: &str,
+    key: &[u8],
+    iv: &[u8],
+    data: &[u8],
+) -> Result<JsValue, JsValue> {
+    let key_arr = require_key(key)?;
+    let iv_arr = require_iv(iv, mode)?;
+    let cipher = Aes128::new(&aes::cipher::generic_array::GenericArray::from(key_arr));
+
+    let encrypt = match direction {
+        "encrypt" => true,
+        "decrypt" => false,
+        _ => return Err(err("direction must be encrypt|decrypt")),
+    };
+
+    let header_len = detect_bmp(data)?;
+    let body = &data[header_len..];
+    let body_len = body.len();
+    let tail_len = body_len % BLOCK;
+
+    let mut trace: Vec<BlockTrace> = Vec::new();
+    let processed = process_body_no_pad(&cipher, mode, &iv_arr, body, encrypt, &mut trace)?;
+
+    let mut out = Vec::with_capacity(data.len());
+    out.extend_from_slice(&data[..header_len]);
+    out.extend_from_slice(&processed);
+
+    let blocks_total = trace.len();
+    let (trace, truncated) = pack_trace(trace);
+
+    let info = format!(
+        "BMP — header {} B, pixel body {} B{}",
+        header_len,
+        body_len,
+        if (mode == "ECB" || mode == "CBC") && tail_len > 0 {
+            format!(" ({} trailing byte{} unchanged — kept length aligned)", tail_len, if tail_len == 1 { "" } else { "s" })
+        } else {
+            String::new()
+        }
+    );
+
+    let result = ProcessOut {
+        ciphertext: out,
+        blocks_total,
+        truncated,
+        trace,
+        pad_info: None,
+        image_info: Some(info),
+    };
+    serde_wasm_bindgen::to_value(&result).map_err(err)
 }
 
 #[cfg(all(test, not(target_arch = "wasm32")))]

@@ -8,6 +8,8 @@ export function derive_key(passphrase: string, salt: Uint8Array, iters: number, 
 
 export function process(direction: string, mode: string, key: Uint8Array, iv: Uint8Array, data: Uint8Array): any;
 
+export function process_image(direction: string, mode: string, key: Uint8Array, iv: Uint8Array, data: Uint8Array): any;
+
 export function random_bytes(n: number): Uint8Array;
 
 export function random_hex(n: number): string;
@@ -18,6 +20,7 @@ export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly derive_key: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
     readonly process: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number];
+    readonly process_image: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number];
     readonly random_bytes: (a: number) => [number, number];
     readonly random_hex: (a: number) => [number, number];
     readonly __wbindgen_malloc: (a: number, b: number) => number;

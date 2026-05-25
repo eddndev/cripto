@@ -109,6 +109,19 @@ se agrega un bloque completo de bytes `0x10` para que el des-padding sea inambig
 CFB, OFB y CTR aceptan cualquier longitud — el último bloque parcial se XOR-ea contra
 el keystream truncado, sin padding.
 
+## El pingüino ECB — modo "contenedor de imagen"
+
+El workspace tiene un toggle **"preservar contenedor de imagen (solo BMP)"**. Cuando está
+activado, el archivo se parsea como BMP: los primeros `bfOffBits` bytes (header + tabla
+opcional de color) pasan sin cambios y solo se cifra el arreglo de píxeles. ECB/CBC
+cambian a un modo **preservador de longitud** (sin PKCS#7 — los últimos &lt;16 bytes pasan
+sin cifrar), así el número de bytes no cambia y el resultado sigue siendo un BMP válido.
+
+Cifra un bitmap plano con **ECB** y la silueta original se filtra directamente en el
+ciphertext — la clásica imagen del *pingüino Tux*. Cambia a **CBC**, **CFB**, **OFB** o
+**CTR** con un IV nuevo y el mismo archivo se convierte en ruido uniforme. Ese contraste
+visual *es* la demostración: ECB preserva la estructura, los otros cuatro la ocultan.
+
 ## Nombres de archivo
 
 El workspace etiqueta el nombre de salida para que un archivo lleve su propia historia:

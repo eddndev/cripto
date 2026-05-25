@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { hexToBytes, useAesModesWasm, type BlockTrace, type ProcessOut } from './useAesModesWasm';
 
 type Lang = 'en' | 'es';
@@ -32,6 +32,11 @@ const T = {
     fileLabel: 'Input file',
     pickFile: 'Pick a file…',
     chosen: 'Selected',
+    imageMode: 'Preserve image container (BMP only)',
+    imageHint: 'Encrypts only the pixel body — the BMP header stays intact so the result still renders as an image (the classic "ECB penguin" demo).',
+    imageInfo: 'Image',
+    previewIn: 'Original',
+    previewOut: 'Processed',
     run: 'Run',
     running: 'Working…',
     download: 'Download result',
@@ -73,6 +78,11 @@ const T = {
     fileLabel: 'Archivo de entrada',
     pickFile: 'Elegir archivo…',
     chosen: 'Seleccionado',
+    imageMode: 'Preservar contenedor de imagen (solo BMP)',
+    imageHint: 'Cifra solo el cuerpo de píxeles — el header BMP queda intacto, así el resultado se sigue viendo como imagen (el clásico demo del "pingüino ECB").',
+    imageInfo: 'Imagen',
+    previewIn: 'Original',
+    previewOut: 'Resultado',
     run: 'Ejecutar',
     running: 'Procesando…',
     download: 'Descargar resultado',
@@ -119,6 +129,7 @@ export default function AesModesWorkspace({ lang = 'en' as Lang }: { lang?: Lang
   const [derivedKey, setDerivedKey] = useState('');
   const [ivHex, setIvHex] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [imageMode, setImageMode] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ProcessOut | null>(null);
@@ -166,7 +177,9 @@ export default function AesModesWorkspace({ lang = 'en' as Lang }: { lang?: Lang
         throw new Error(`${mode} requires a 16-byte IV (got ${ivBytes.length})`);
       }
       const data = new Uint8Array(await file.arrayBuffer());
-      const out = wasm.process(direction, mode, keyBytes, ivBytes, data);
+      const out = imageMode
+        ? wasm.processImage(direction, mode, keyBytes, ivBytes, data)
+        : wasm.process(direction, mode, keyBytes, ivBytes, data);
       setResult(out);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -307,7 +320,11 @@ export default function AesModesWorkspace({ lang = 'en' as Lang }: { lang?: Lang
             <input
               type="file"
               className="hidden"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                setFile(f);
+                if (f && /\.bmp$/i.test(f.name)) setImageMode(true);
+              }}
             />
           </label>
           {file && (
@@ -317,6 +334,18 @@ export default function AesModesWorkspace({ lang = 'en' as Lang }: { lang?: Lang
             </span>
           )}
         </div>
+        <label className="flex items-start gap-2 cursor-pointer mt-1">
+          <input
+            type="checkbox"
+            checked={imageMode}
+            onChange={(e) => setImageMode(e.target.checked)}
+            className="mt-1 accent-accent"
+          />
+          <span className="flex flex-col">
+            <span className="font-mono text-[0.78rem] text-text-primary">{t.imageMode}</span>
+            <span className="font-mono text-[0.7rem] text-text-secondary leading-relaxed">{t.imageHint}</span>
+          </span>
+        </label>
       </Section>
 
       <button
@@ -341,10 +370,39 @@ export default function AesModesWorkspace({ lang = 'en' as Lang }: { lang?: Lang
           onDownload={() => download(outName, result.ciphertext)}
           outName={outName}
           mode={mode}
+          originalFile={file}
         />
       )}
     </div>
   );
+}
+
+function useObjectUrl(data: Uint8Array | null, mime: string): string | null {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!data) {
+      setUrl(null);
+      return;
+    }
+    const u = URL.createObjectURL(new Blob([data], { type: mime }));
+    setUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [data, mime]);
+  return url;
+}
+
+function useFileUrl(file: File | null): string | null {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) {
+      setUrl(null);
+      return;
+    }
+    const u = URL.createObjectURL(file);
+    setUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [file]);
+  return url;
 }
 
 function ResultPanel({
@@ -353,13 +411,18 @@ function ResultPanel({
   onDownload,
   outName,
   mode,
+  originalFile,
 }: {
   result: ProcessOut;
   t: (typeof T)['en'];
   onDownload: () => void;
   outName: string;
   mode: Mode;
+  originalFile: File | null;
 }) {
+  const isBmp = result.image_info != null;
+  const inUrl = useFileUrl(isBmp ? originalFile : null);
+  const outUrl = useObjectUrl(isBmp ? result.ciphertext : null, 'image/bmp');
   return (
     <div className="flex flex-col gap-4 border border-[#3a3a42] bg-[#0c0c12] p-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -380,6 +443,17 @@ function ResultPanel({
       {result.pad_info && (
         <div className="font-mono text-[0.78rem] text-text-secondary">
           {t.statsPad}: <span className="text-text-primary">{result.pad_info}</span>
+        </div>
+      )}
+      {result.image_info && (
+        <div className="font-mono text-[0.78rem] text-text-secondary">
+          {t.imageInfo}: <span className="text-text-primary">{result.image_info}</span>
+        </div>
+      )}
+      {isBmp && inUrl && outUrl && (
+        <div className="grid grid-cols-2 max-md:grid-cols-1 gap-3">
+          <PreviewCard label={t.previewIn} url={inUrl} />
+          <PreviewCard label={t.previewOut} url={outUrl} />
         </div>
       )}
       <div>
@@ -449,6 +523,20 @@ function TraceTable({
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function PreviewCard({ label, url }: { label: string; url: string }) {
+  return (
+    <div className="flex flex-col gap-2 border border-[#2a2a32] bg-[#0c0c12] p-3">
+      <span className="font-mono text-[0.7rem] text-text-secondary uppercase tracking-[0.08em]">{label}</span>
+      <img
+        src={url}
+        alt={label}
+        className="w-full max-h-[320px] object-contain bg-[#000] image-render-pixelated"
+        style={{ imageRendering: 'pixelated' }}
+      />
     </div>
   );
 }

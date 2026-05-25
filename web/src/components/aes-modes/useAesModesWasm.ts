@@ -16,6 +16,7 @@ export type ProcessOut = {
   truncated: boolean;
   trace: BlockTrace[];
   pad_info: string | null;
+  image_info: string | null;
 };
 
 type WasmModule = {
@@ -24,6 +25,13 @@ type WasmModule = {
   random_hex: (n: number) => string;
   derive_key: (passphrase: string, salt: Uint8Array, iters: number, out_len: number) => string;
   process: (
+    direction: 'encrypt' | 'decrypt',
+    mode: string,
+    key: Uint8Array,
+    iv: Uint8Array,
+    data: Uint8Array,
+  ) => ProcessOut;
+  process_image: (
     direction: 'encrypt' | 'decrypt',
     mode: string,
     key: Uint8Array,
@@ -40,6 +48,13 @@ export type AesApi = {
   randomHex: (n: number) => string;
   deriveKey: (passphrase: string, salt: Uint8Array, iters: number, outLen: number) => string;
   process: (
+    direction: 'encrypt' | 'decrypt',
+    mode: string,
+    key: Uint8Array,
+    iv: Uint8Array,
+    data: Uint8Array,
+  ) => ProcessOut;
+  processImage: (
     direction: 'encrypt' | 'decrypt',
     mode: string,
     key: Uint8Array,
@@ -90,6 +105,10 @@ export function useAesModesWasm(): AesApi {
     process(direction, mode, key, iv, data) {
       if (!modRef.current) throw new Error('WASM not loaded');
       return modRef.current.process(direction, mode, key, iv, data);
+    },
+    processImage(direction, mode, key, iv, data) {
+      if (!modRef.current) throw new Error('WASM not loaded');
+      return modRef.current.process_image(direction, mode, key, iv, data);
     },
   };
 }
