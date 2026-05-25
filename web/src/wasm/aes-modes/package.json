@@ -1,0 +1,15 @@
+{
+  "name": "aes-modes-practice",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "aes_modes_practice_bg.wasm",
+    "aes_modes_practice.js",
+    "aes_modes_practice.d.ts"
+  ],
+  "main": "aes_modes_practice.js",
+  "types": "aes_modes_practice.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
