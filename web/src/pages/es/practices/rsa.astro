@@ -43,6 +43,29 @@ const authors = entry!.data.authors ?? [];
         <RsaWorkspace client:only="react" lang="es" />
       </div>
 
+      <div id="public-key" class="mt-12 mb-12 scroll-mt-32 panel bg-[#13131a]/80 backdrop-blur-sm border border-[#3a3a42] p-8 max-md:p-5">
+        <div class="flex items-start justify-between gap-6 max-md:flex-col">
+          <div>
+            <span class="block font-mono text-[0.7rem] text-accent uppercase tracking-[0.12em] mb-2">eddndev · llave pública</span>
+            <h2 class="text-2xl font-bold mb-2">Cíframe algo.</h2>
+            <p class="text-text-secondary text-[0.95rem] leading-relaxed max-w-[560px]">
+              Esta es la mitad pública de un par RSA-2048 generado con esta misma práctica.
+              Descárgala y úsala en la pestaña <span class="text-accent">Cifrar archivo</span> para enviarme algo que solo yo pueda leer.
+            </p>
+            <p class="font-mono text-[0.75rem] text-[#7a7a85] mt-3">
+              n = 4166515599, 1494499746, 929094071, … (64 limbs · 2048 bits) · e = 65537
+            </p>
+          </div>
+          <a
+            href="/eddndev_public.json"
+            download="eddndev_public.json"
+            class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full text-[0.85rem] font-mono font-semibold whitespace-nowrap bg-accent text-black hover:bg-text-primary transition-colors duration-200"
+          >
+            ↓ DESCARGAR LLAVE
+          </a>
+        </div>
+      </div>
+
       <div id="panel-writeup" class="panel bg-[#13131a]/80 backdrop-blur-sm border border-[#3a3a42] p-8 max-md:p-5 hidden">
         {authors.length > 0 && (
           <div class="mb-6 pb-4 border-b border-[#3a3a42]">

@@ -11,8 +11,8 @@ const t = lang === 'es' ? {
   desc2: 'Implementada en',
   desc3: ', compilada a',
   desc4: ', ejecutándose completamente en tu navegador.',
-  cta: 'Explorar prácticas',
-  github: 'Ver en GitHub →',
+  cta: 'Descargar CV',
+  github: 'Ver mi llave pública →',
 } : {
   label: 'Hands-on cryptography',
   line1: 'ENCRYPT.', line2: 'HIDE.',
@@ -20,8 +20,8 @@ const t = lang === 'es' ? {
   desc2: 'Implemented in',
   desc3: ', compiled to',
   desc4: ', running entirely in your browser.',
-  cta: 'Explore Practices',
-  github: 'View on GitHub →',
+  cta: 'Download CV',
+  github: 'View my public key →',
 };
 ---
 
@@ -41,8 +41,8 @@ const t = lang === 'es' ? {
         {t.desc2} <strong>Rust</strong>{t.desc3} <strong>WebAssembly</strong>{t.desc4}
       </p>
       <div class="flex gap-4 shrink-0 max-md:flex-col max-md:w-full">
-        <a href="#practices" class="hero__cta--solid inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-all duration-200 bg-text-primary text-bg-primary hover:bg-accent hover:text-black max-md:w-full max-md:justify-center">{t.cta}</a>
-        <a href="https://github.com/eddndev/crypto" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-colors duration-200 text-text-secondary hover:text-text-primary max-md:w-full max-md:justify-center">{t.github}</a>
+        <a href="/cv.pdf" download class="hero__cta--solid inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-all duration-200 bg-text-primary text-bg-primary hover:bg-accent hover:text-black max-md:w-full max-md:justify-center">{t.cta}</a>
+        <a href={lang === 'es' ? '/es/practices/rsa/#public-key' : '/practices/rsa/#public-key'} class="inline-flex items-center px-8 py-3.5 rounded-full text-[0.9rem] font-semibold whitespace-nowrap transition-colors duration-200 text-text-secondary hover:text-text-primary max-md:w-full max-md:justify-center">{t.github}</a>
       </div>
     </div>
   </div>

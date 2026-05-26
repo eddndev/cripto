@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Eduardo Alonso — Curriculum Vitae</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #0a0a0a;
+    --muted: #555;
+    --rule: #d4d4d4;
+    --accent: #6d28d9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    padding: 18mm 16mm;
+    max-width: 210mm;
+    margin: 0 auto;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+  h1 { font-size: 28pt; font-weight: 900; letter-spacing: -0.03em; margin: 0; line-height: 1; }
+  h1 .handle { color: var(--accent); }
+  .tagline { font-family: "JetBrains Mono", monospace; font-size: 8.5pt; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 6px; }
+  .contact { text-align: right; font-family: "JetBrains Mono", monospace; font-size: 8.5pt; color: var(--muted); }
+  .contact a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--rule); }
+  .contact div { margin-bottom: 3px; }
+
+  section { margin-top: 18px; }
+  h2 {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin: 0 0 10px 0;
+    font-weight: 600;
+  }
+  h2::before { content: "● "; font-size: 6pt; vertical-align: middle; margin-right: 4px; }
+
+  .summary { font-size: 11pt; max-width: 160mm; }
+  .summary strong { font-weight: 700; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px; }
+
+  .project { break-inside: avoid; }
+  .project-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .project-name { font-weight: 700; font-size: 11pt; }
+  .project-meta { font-family: "JetBrains Mono", monospace; font-size: 8pt; color: var(--muted); }
+  .project p { margin: 4px 0 0; color: #2a2a2a; }
+  .stack { font-family: "JetBrains Mono", monospace; font-size: 8pt; color: var(--accent); margin-top: 4px; }
+
+  .skills-grid { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-family: "JetBrains Mono", monospace; font-size: 9pt; }
+  .skills-grid dt { color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; font-size: 8pt; }
+  .skills-grid dd { margin: 0; }
+
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill { border: 1px solid var(--rule); padding: 2px 8px; border-radius: 999px; font-family: "JetBrains Mono", monospace; font-size: 8pt; }
+
+  ul.compact { margin: 0; padding-left: 16px; }
+  ul.compact li { margin: 3px 0; }
+
+  footer {
+    margin-top: 22px; padding-top: 10px; border-top: 1px solid var(--rule);
+    font-family: "JetBrains Mono", monospace; font-size: 7.5pt; color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+
+  @media print {
+    body { padding: 14mm 14mm; }
+    a { color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Eduardo Alonso <span class="handle">/ eddndev</span></h1>
+    <div class="tagline">Software Engineer · Architecture / Performance / Systems</div>
+  </div>
+  <div class="contact">
+    <div>Mexico City, MX</div>
+    <div><a href="https://eddn.dev">eddn.dev</a></div>
+    <div><a href="https://achrony.me">achrony.me</a></div>
+    <div><a href="https://github.com/eddndev">github.com/eddndev</a></div>
+    <div><a href="https://www.linkedin.com/in/eddndev">linkedin.com/in/eddndev</a></div>
+  </div>
+</header>
+
+<section>
+  <h2>Focus</h2>
+  <p class="summary">
+    Engineer working at the intersection of <strong>low-level systems</strong>,
+    <strong>distributed computing</strong> and <strong>applied cryptography</strong>.
+    Designs language runtimes, bytecode VMs and zero-knowledge proof pipelines in Rust;
+    ships entirely in-browser cryptographic tooling via WebAssembly. Comfortable owning
+    a system end-to-end — from the constraint system up to the deploy pipeline.
+  </p>
+</section>
+
+<section>
+  <h2>Selected Projects</h2>
+  <div class="grid">
+
+    <div class="project">
+      <div class="project-head">
+        <span class="project-name">Achronyme</span>
+        <span class="project-meta">2024 — present · achrony.me</span>
+      </div>
+      <p>Functional language for zero-knowledge proofs. Compiles to three purpose-built
+        bytecode VMs — <span class="mono">Akron</span> (40 opcodes), <span class="mono">Artik</span> (25), <span class="mono">Lysis</span> (29) —
+        for constraint generation, witness computation and verification. Backends: Groth16, PlonK. Zero-trust pipeline
+        with taint analysis and constraint-system verification.</p>
+      <div class="stack">Rust · Custom VMs · Groth16 / PlonK · Taint analysis</div>
+    </div>
+
+    <div class="project">
+      <div class="project-head">
+        <span class="project-name">crypto.eddn.dev</span>
+        <span class="project-meta">2026 · github.com/eddndev/crypto</span>
+      </div>
+      <p>Bilingual (EN/ES) educational cryptography suite: affine cipher, BMP steganography,
+        matrix calculator, RSA hybrid encryption (AES-256-GCM + RSA PKCS#1 v1.5),
+        AES modes of operation. Every algorithm is implemented in Rust, compiled to WASM,
+        and executes 100% in the browser — keys and plaintext never leave the tab.</p>
+      <div class="stack">Rust · WebAssembly · Astro · React islands · Tailwind v4</div>
+    </div>
+
+    <div class="project">
+      <div class="project-head">
+        <span class="project-name">Syle Studio</span>
+        <span class="project-meta">2024</span>
+      </div>
+      <p>Custom streetwear e-commerce on a proprietary CMS — no off-the-shelf platform.
+        Owned schema design, performance budget and deploy pipeline.</p>
+      <div class="stack">Node.js · PostgreSQL · Custom CMS</div>
+    </div>
+
+    <div class="project">
+      <div class="project-head">
+        <span class="project-name">Yatagarasu</span>
+        <span class="project-meta">2025</span>
+      </div>
+      <p>Zero-JavaScript portfolio site with retro-arcade aesthetic. Static rendering,
+        no client runtime, sub-100ms interaction-to-paint targets.</p>
+      <div class="stack">Astro · Zero-JS · Static rendering</div>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>Engineering Stack</h2>
+  <dl class="skills-grid">
+    <dt>Languages</dt>
+    <dd>Rust (primary) · TypeScript · Go · Dart · C / C++ · Python</dd>
+    <dt>Systems</dt>
+    <dd>WebAssembly · Custom bytecode VMs · Compiler design · Memory-safe FFI</dd>
+    <dt>Crypto</dt>
+    <dd>Zero-knowledge proofs (Groth16, PlonK) · AES-GCM · RSA · PKCS#1 · Constraint systems</dd>
+    <dt>Distributed</dt>
+    <dd>Service architecture · Async runtimes (Tokio) · Message-passing · Containerized deploys</dd>
+    <dt>Web</dt>
+    <dd>Astro · React · TypeScript · GSAP · Tailwind</dd>
+    <dt>Infra</dt>
+    <dd>Docker · AWS · Cloudflare Pages · PostgreSQL · MongoDB</dd>
+  </dl>
+</section>
+
+<section>
+  <h2>Selected Achievements</h2>
+  <ul class="compact">
+    <li>LeetCode <strong>Guardian</strong> — Contest Rating <strong>2,749</strong> (Top 0.05% globally); 160 Hard problems solved, 92.55% acceptance rate.</li>
+    <li>Designed and shipped a three-VM bytecode pipeline for zero-knowledge proof generation, with separate VMs for constraint emission, witness solving and verification.</li>
+    <li>Implemented a hybrid AES-256-GCM + RSA PKCS#1 v1.5 file-encryption scheme entirely in Rust → WASM, with all keying material confined to the browser tab.</li>
+    <li>Built and operate <span class="mono">eddndev</span> — an independent digital engineering studio focused on custom infrastructure over template-based solutions.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Interests</h2>
+  <div class="pill-row">
+    <span class="pill">Compiler internals</span>
+    <span class="pill">Zero-knowledge proofs</span>
+    <span class="pill">Applied cryptography</span>
+    <span class="pill">Distributed systems</span>
+    <span class="pill">WebAssembly</span>
+    <span class="pill">Competitive programming</span>
+    <span class="pill">VM design</span>
+  </div>
+</section>
+
+<footer>
+  <span>Generated from eddn.dev · achrony.me · eddndev.com</span>
+  <span>v · 2026.05</span>
+</footer>
+
+</body>
+</html>
