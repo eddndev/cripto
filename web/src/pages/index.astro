@@ -2,41 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
-import PracticeCard from '../components/PracticeCard.astro';
 import Footer from '../components/Footer.astro';
-
-const practices = [
-  {
-    title: 'Steganography',
-    description: 'Hide secret messages inside images using LSB encoding. Upload a file and embed hidden data invisible to the naked eye.',
-    tags: ['LSB', 'images', 'encoding'],
-    href: '/practices/steganography',
-  },
-  {
-    title: 'Affine Cipher',
-    description: 'Encrypt and decrypt messages using the affine cipher. Validate coprimality, compute multiplicative inverses, and see e_k and d_k in action.',
-    tags: ['modular arithmetic', 'affine', 'encryption'],
-    href: '/practices/affine-cipher',
-  },
-  {
-    title: 'Matrix Calculator',
-    description: 'Modular matrix algebra with reusable result slots. Invert, solve systems, and reduce non-square matrices via RREF — chain computations without re-typing.',
-    tags: ['linear algebra', 'modular', 'hill'],
-    href: '/practices/matrix-calculator',
-  },
-  {
-    title: 'RSA Hybrid Encryption',
-    description: 'Generate RSA keypairs and encrypt/decrypt files with AES-256-GCM wrapped by RSA. Pure WebAssembly — keys and plaintext never leave the browser.',
-    tags: ['rsa', 'aes-gcm', 'public-key'],
-    href: '/practices/rsa',
-  },
-  {
-    title: 'AES Modes of Operation',
-    description: 'Encrypt and decrypt files with AES-128 in ECB, CBC, CFB, OFB and CTR. Inspect per-block trace, derive keys via PBKDF2, randomize IVs — pure WebAssembly.',
-    tags: ['aes', 'block cipher', 'modes'],
-    href: '/practices/aes-modes',
-  },
-];
 ---
 
 <Base>
@@ -45,49 +11,6 @@ const practices = [
     <!-- Background blobs -->
     <div id="blob-container" class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"></div>
     <Hero />
-
-    <section id="practices" class="relative py-24 border-t border-border">
-      <div class="mx-auto w-full max-w-[1200px] px-8">
-        <div>
-          <span class="section-label block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">What you'll build</span>
-          <h2 class="section-title text-[clamp(2.5rem,5vw,4rem)] mb-12">PRACTICES</h2>
-        </div>
-        <div class="grid grid-cols-2 max-md:grid-cols-1 gap-px bg-border border border-border">
-          {practices.map((p, i) => (
-            <PracticeCard
-              title={p.title}
-              description={p.description}
-              tags={p.tags}
-              index={i + 1}
-              comingSoon={!p.href}
-              href={p.href}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section id="about" class="relative py-24 pb-32 border-t border-border">
-      <div class="mx-auto w-full max-w-[1200px] px-8">
-        <div class="grid grid-cols-2 max-md:grid-cols-1 gap-16 max-md:gap-8 items-start">
-          <div class="about__left">
-            <span class="section-label block font-mono text-[0.8rem] text-accent uppercase tracking-[0.1em] mb-3">The approach</span>
-            <h2 class="section-title text-[clamp(2.5rem,5vw,4rem)] mb-0">LEARN BY<br />DOING.</h2>
-          </div>
-          <div class="about__right flex flex-col gap-5 pt-10 max-md:pt-0">
-            <p class="text-text-secondary text-[1.05rem] leading-[1.7] [&_strong]:text-text-primary [&_strong]:font-semibold">
-              Each practice is implemented in <strong>Rust</strong>, compiled to
-              <strong>WebAssembly</strong>, and runs entirely in your browser.
-            </p>
-            <p class="text-text-secondary text-[1.05rem] leading-[1.7] [&_strong]:text-text-primary [&_strong]:font-semibold">
-              Upload files, transform data, and see results in real time — no
-              servers involved. Understand the algorithms, see them work, and
-              experiment with your own inputs.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
   <Footer />
 </Base>

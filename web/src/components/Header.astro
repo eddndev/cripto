@@ -5,6 +5,9 @@ const altLang = isSpanish ? 'EN' : 'ES';
 const altHref = isSpanish
   ? currentPath.replace(/^\/es\//, '/')
   : `/es${currentPath}`;
+
+const practicesHref = isSpanish ? '/es/practices' : '/practices';
+const aboutHref = isSpanish ? '/es/practices#about' : '/practices#about';
 ---
 
 <header class="fixed top-0 w-full z-100 bg-transparent backdrop-blur-[12px]">
@@ -19,14 +22,14 @@ const altHref = isSpanish
     <nav class="header__nav flex items-center">
       <ul class="header__nav-list flex gap-10 list-none m-0 p-0">
         <li class="header__nav-item">
-          <a href="#practices" class="header__link flex items-baseline gap-2 no-underline transition-colors duration-200">
+          <a href={practicesHref} class="header__link flex items-baseline gap-2 no-underline transition-colors duration-200">
             <span class="font-mono text-xs text-accent">01</span>
             <span class="header__text font-mono text-xs font-medium text-text-secondary tracking-[0.05em] transition-colors duration-200">PRACTICES</span>
             <span class="header__sub hidden">Core algorithms</span>
           </a>
         </li>
         <li class="header__nav-item">
-          <a href="#about" class="header__link flex items-baseline gap-2 no-underline transition-colors duration-200">
+          <a href={aboutHref} class="header__link flex items-baseline gap-2 no-underline transition-colors duration-200">
             <span class="font-mono text-xs text-accent">02</span>
             <span class="header__text font-mono text-xs font-medium text-text-secondary tracking-[0.05em] transition-colors duration-200">ABOUT</span>
             <span class="header__sub hidden">Project details</span>

@@ -3,6 +3,9 @@ interface Props { lang?: 'en' | 'es'; }
 const { lang = 'en' } = Astro.props;
 const currentYear = new Date().getFullYear();
 
+const practicesHref = lang === 'es' ? '/es/practices' : '/practices';
+const aboutHref = lang === 'es' ? '/es/practices#about' : '/practices#about';
+
 const t = lang === 'es' ? {
   explore: '[ Explorar ]',
   practices: 'Prácticas', practicesSub: 'Cifrar / Hash / Ocultar',
@@ -32,11 +35,11 @@ const t = lang === 'es' ? {
       <nav class="hidden lg:block">
         <h2 class="font-mono text-[0.8rem] font-medium text-accent uppercase tracking-[0.15em] mb-12 leading-none">{t.explore}</h2>
         <div class="flex flex-col">
-          <a href="#practices" class="footer__map-item flex items-baseline justify-between w-full py-6 border-b border-border transition-[border-color] duration-300 hover:border-accent-deep group">
+          <a href={practicesHref} class="footer__map-item flex items-baseline justify-between w-full py-6 border-b border-border transition-[border-color] duration-300 hover:border-accent-deep group">
             <span class="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold uppercase tracking-[-0.02em] text-text-primary transition-colors duration-300">{t.practices}</span>
             <span class="font-mono text-[0.85rem] text-text-secondary tracking-[0.02em] transition-colors duration-300 group-hover:text-accent">{t.practicesSub}</span>
           </a>
-          <a href="#about" class="footer__map-item flex items-baseline justify-between w-full py-6 border-b border-border transition-[border-color] duration-300 hover:border-accent-deep group">
+          <a href={aboutHref} class="footer__map-item flex items-baseline justify-between w-full py-6 border-b border-border transition-[border-color] duration-300 hover:border-accent-deep group">
             <span class="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold uppercase tracking-[-0.02em] text-text-primary transition-colors duration-300">{t.about}</span>
             <span class="font-mono text-[0.85rem] text-text-secondary tracking-[0.02em] transition-colors duration-300 group-hover:text-accent">{t.aboutSub}</span>
           </a>
